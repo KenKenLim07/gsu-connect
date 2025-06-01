@@ -1,6 +1,4 @@
-import type { LoginCredentials, AuthResponse, User } from '../types/auth';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import type { LoginCredentials, User } from '../types/auth';
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<User> {
@@ -30,5 +28,5 @@ export const authService = {
 
   getToken(): string | null {
     return localStorage.getItem('token');
-  },
+  }
 }; 
