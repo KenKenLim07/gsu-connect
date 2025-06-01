@@ -1,9 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { Toaster } from './components/ui/toaster';
 import ProtectedRoute from './guards/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
+import { handleRedirect } from './utils/redirect';
 
 // Lazy load pages
 const Login = lazy(() => import('./pages/Login'));
@@ -20,6 +21,10 @@ const LoadingFallback = () => (
 );
 
 function App() {
+  useEffect(() => {
+    handleRedirect();
+  }, []);
+
   return (
     <AuthProvider>
       <Router basename="/gsu-connect">
