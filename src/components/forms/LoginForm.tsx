@@ -7,7 +7,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
 export default function LoginForm() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -19,17 +19,13 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      await login({ email: username, password });
-      toast({
-        title: "Success",
-        description: "You have been logged in successfully.",
-      });
+      await login({ email, password });
       navigate("/");
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Invalid username or password.",
+        description: "Invalid email or password.",
       });
     } finally {
       setIsLoading(false);
@@ -39,13 +35,13 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
+        <Label htmlFor="email">Email</Label>
         <Input
-          id="username"
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Enter your username"
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Enter your email"
           required
         />
       </div>

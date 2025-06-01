@@ -4,7 +4,7 @@ export const authService = {
   async login(credentials: LoginCredentials): Promise<User> {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        if (credentials.email === "admin" && credentials.password === "admin") {
+        if (credentials.email === "admin@gsu.edu" && credentials.password === "admin") {
           resolve({
             id: "1",
             name: "Admin",

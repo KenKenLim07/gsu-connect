@@ -23,27 +23,27 @@ export default function NewsCard({ title, content, campus, eventType, timestamp,
   });
 
   return (
-    <Card>
-      <CardHeader className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          <div className="flex gap-1.5">
-            <Badge variant="outline" className="bg-gray-100 text-xs px-2 py-0.5 rounded-md">
+    <Card className="overflow-hidden">
+      <CardHeader className="space-y-2 p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h3 className="text-lg font-semibold break-words">{title}</h3>
+          <div className="flex flex-wrap gap-1.5">
+            <Badge variant="outline" className="bg-gray-100 text-xs px-2 py-0.5 rounded-md whitespace-nowrap">
               {campus}
             </Badge>
-            <Badge className={`${eventTypeColors[eventType]} text-xs px-2 py-0.5 rounded-md`}>
+            <Badge className={`${eventTypeColors[eventType]} text-xs px-2 py-0.5 rounded-md whitespace-nowrap`}>
               {eventType}
             </Badge>
           </div>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <span>{author}</span>
+          <span className="truncate">{author}</span>
           <span>•</span>
-          <span>{formattedDate}</span>
+          <span className="whitespace-nowrap">{formattedDate}</span>
         </div>
       </CardHeader>
-      <CardContent>
-        <p className="text-gray-700">{content}</p>
+      <CardContent className="p-4 pt-0">
+        <p className="text-gray-700 break-words">{content}</p>
       </CardContent>
     </Card>
   );
