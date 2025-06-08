@@ -14,7 +14,7 @@ export default function MainLayout() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -16 }}
           transition={{ duration: 0.25, ease: 'easeInOut' }}
-          className="flex-1 px-4 py-6 container mx-auto w-full"
+          className="flex-1 px-4 py-7 max-w-7xl mx-auto w-full mt-8"
         >
           <Outlet />
         </motion.main>

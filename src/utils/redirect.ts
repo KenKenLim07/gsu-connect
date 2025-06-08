@@ -2,24 +2,18 @@
 // MIT License
 // https://github.com/rafgraph/spa-github-pages
 
-export function handleRedirect() {
-  const pathSegmentsToKeep = 1;
-
-  const l = window.location;
-  if (l.pathname.includes('/?/')) {
-    const newPath = l.pathname
-      .split('/?/')[1]
-      .replace(/~and~/g, '&')
-      .split('/')
-      .slice(pathSegmentsToKeep)
-      .join('/');
-    
-    const newSearch = l.search
-      .split('&')
-      .map(param => param.replace(/~and~/g, '&'))
-      .join('&');
-
-    const newUrl = l.pathname.split('/?/')[0] + '/' + newPath + newSearch + l.hash;
+export const handleRedirect = () => {
+  // Check if we need to handle any redirects
+  const urlParams = new URLSearchParams(window.location.search);
+  const redirectTo = urlParams.get('redirectTo');
+  
+  if (redirectTo) {
+    // Remove the redirectTo parameter from the URL
+    urlParams.delete('redirectTo');
+    const newUrl = window.location.pathname + (urlParams.toString() ? `?${urlParams.toString()}` : '');
     window.history.replaceState({}, '', newUrl);
+    
+    // Redirect to the specified path
+    window.location.href = redirectTo;
   }
-} 
+};
