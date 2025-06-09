@@ -39,7 +39,7 @@ async function getCampusId(supabase: ReturnType<typeof createClient>, campusName
 
   if (existingCampus) {
     console.log(`Found existing campus: ${campusName}`);
-    return existingCampus.id;
+    return existingCampus.id as string;
   }
 
   // If campus doesn't exist, create it
@@ -55,7 +55,7 @@ async function getCampusId(supabase: ReturnType<typeof createClient>, campusName
     throw insertError;
   }
 
-  return newCampus.id;
+  return newCampus.id as string;
 }
 
 function parseDate(dateStr: string): string {
@@ -85,9 +85,32 @@ export async function saveNews(news: NewsItem[]) {
       };
     }));
 
+    // Check for existing news items
+    const existingNews = await Promise.all(
+      processedNews.map(async (item) => {
+        const { data } = await supabase
+          .from('news')
+          .select('id')
+          .eq('title', item.title)
+          .eq('campus_id', item.campus_id)
+          .maybeSingle();
+        return { item, exists: !!data };
+      })
+    );
+
+    // Filter out existing news items
+    const newNews = existingNews
+      .filter(({ exists }) => !exists)
+      .map(({ item }) => item);
+
+    if (newNews.length === 0) {
+      console.log('No new news items to insert');
+      return { error: null, count: 0 };
+    }
+
     const { error, count } = await supabase
       .from('news')
-      .insert(processedNews, { count: 'exact' });
+      .insert(newNews, { count: 'exact' });
     
     if (error) {
       console.error('Supabase error details:', {

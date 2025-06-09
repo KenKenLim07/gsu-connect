@@ -1,21 +1,40 @@
 {
   "name": "gsu-connect-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Backend service for GSU Connect - News scraping and management",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "test": "jest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "gsu",
+    "news",
+    "scraper",
+    "supabase"
+  ],
+  "author": "KenkenLim07",
+  "license": "MIT",
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
-    "@types/node": "^22.15.30",
     "axios": "^1.9.0",
     "cheerio": "^1.0.0",
     "dotenv": "^16.5.0",
-    "tsx": "^4.19.4",
+    "tsx": "^4.19.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.0",
     "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

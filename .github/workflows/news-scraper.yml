@@ -1,0 +1,90 @@
+name: GSU News Scraper
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Runs every 6 hours
+  workflow_dispatch:  # Allows manual triggering
+  push:
+    branches:
+      - main
+    paths:
+      - 'gsu-connect-backend/**'
+
+env:
+  NODE_VERSION: '18'
+  CACHE_KEY: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('gsu-connect-backend/package-lock.json') }}
+
+jobs:
+  validate-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Environment Variables
+        run: |
+          if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_SERVICE_ROLE }}" ]; then
+            echo "::error::Missing required environment variables"
+            exit 1
+          fi
+
+  scrape:
+    needs: validate-env
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: gsu-connect-backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: gsu-connect-backend
+        run: |
+          npm ci
+          npm cache clean --force
+
+      - name: Run scraper
+        id: scraper
+        working-directory: gsu-connect-backend
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
+          NODE_ENV: production
+        run: |
+          echo "Starting scraper at $(date)"
+          npx tsx src/index.ts
+          SCRAPER_EXIT_CODE=$?
+          echo "Scraper finished at $(date)"
+          exit $SCRAPER_EXIT_CODE
+
+      - name: Handle failure
+        if: failure()
+        run: |
+          echo "::error::Scraper failed. Check the logs for details."
+          exit 1
+
+      - name: Notify on failure
+        if: failure()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: alerts
+          SLACK_COLOR: danger
+          SLACK_TITLE: GSU News Scraper Failed
+          SLACK_MESSAGE: 'Scraper job failed. Check the GitHub Actions logs for details.'
+          SLACK_FOOTER: 'GSU Connect'
+
+      - name: Notify on success
+        if: success()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: alerts
+          SLACK_COLOR: good
+          SLACK_TITLE: GSU News Scraper Succeeded
+          SLACK_MESSAGE: 'Scraper job completed successfully.'
+          SLACK_FOOTER: 'GSU Connect' 
