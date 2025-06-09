@@ -12,7 +12,18 @@ on:
       - 'gsu-connect-backend/**'
 
 jobs:
+  validate-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Environment Variables
+        run: |
+          if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_SERVICE_ROLE }}" ]; then
+            echo "::error::Missing required environment variables"
+            exit 1
+          fi
+
   scrape:
+    needs: validate-env
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
