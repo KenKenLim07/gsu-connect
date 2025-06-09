@@ -1,5 +1,6 @@
 name: GSU News Scraper
 
+# Workflow to automatically scrape GSU news
 on:
   schedule:
     - cron: '0 */6 * * *'  # Runs every 6 hours
