@@ -24,6 +24,27 @@ function getSupabaseClient() {
   return supabaseClient;
 }
 
+async function createNewsLikesTable() {
+  const supabase = getSupabaseClient();
+  
+  // Create news_likes table if it doesn't exist
+  const { error } = await supabase.rpc('create_news_likes_table', {
+    sql: `
+      CREATE TABLE IF NOT EXISTS news_likes (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        news_id UUID REFERENCES news(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+        UNIQUE(news_id, user_id)
+      );
+    `
+  });
+
+  if (error) {
+    console.error('Error creating news_likes table:', error);
+  }
+}
+
 async function getCampusId(supabase: ReturnType<typeof createClient>, campusName: string): Promise<string> {
   // First try to find the campus
   const { data: existingCampus, error: findError } = await supabase
@@ -81,49 +102,55 @@ export async function saveNews(news: NewsItem[]) {
         content: item.content,
         published_at: parseDate(item.published_at),
         source_url: item.source_url,
-        campus_id: campusId
+        campus_id: campusId,
+        image_url: item.image_url || null
       };
     }));
 
-    // Check for existing news items
-    const existingNews = await Promise.all(
+    // Check for existing news items and update them
+    const results = await Promise.all(
       processedNews.map(async (item) => {
-        const { data } = await supabase
+        const { data: existingNews } = await supabase
           .from('news')
           .select('id')
           .eq('title', item.title)
           .eq('campus_id', item.campus_id)
           .maybeSingle();
-        return { item, exists: !!data };
+
+        if (existingNews) {
+          // Update existing news item with new image URL
+          const { error: updateError } = await supabase
+            .from('news')
+            .update({ image_url: item.image_url })
+            .eq('id', existingNews.id as string);
+          
+          return { error: updateError, isUpdate: true };
+        } else {
+          // Insert new news item
+          const { error: insertError } = await supabase
+            .from('news')
+            .insert(item);
+          
+          return { error: insertError, isUpdate: false };
+        }
       })
     );
 
-    // Filter out existing news items
-    const newNews = existingNews
-      .filter(({ exists }) => !exists)
-      .map(({ item }) => item);
-
-    if (newNews.length === 0) {
-      console.log('No new news items to insert');
-      return { error: null, count: 0 };
+    const errors = results.filter(r => r.error);
+    if (errors.length > 0) {
+      console.error('Errors during save/update:', errors);
     }
 
-    const { error, count } = await supabase
-      .from('news')
-      .insert(newNews, { count: 'exact' });
-    
-    if (error) {
-      console.error('Supabase error details:', {
-        code: error.code,
-        message: error.message,
-        details: error.details,
-        hint: error.hint
-      });
-    }
-    
-    return { error, count };
+    const updateCount = results.filter(r => r.isUpdate).length;
+    const insertCount = results.filter(r => !r.isUpdate).length;
+
+    return { 
+      error: errors.length > 0 ? errors[0].error as Error : null, 
+      count: insertCount,
+      updateCount 
+    };
   } catch (err) {
     console.error('Unexpected error while saving news:', err);
-    return { error: err, count: 0 };
+    return { error: err as Error, count: 0, updateCount: 0 };
   }
 } 

@@ -9,6 +9,7 @@ interface SupabaseNewsItem {
   source_url: string;
   campus_id: string;
   created_at: string;
+  image_url: string | null;
   campus: {
     id: string;
     name: string;
@@ -27,6 +28,7 @@ function mapSupabaseToNewsItem(item: unknown): NewsItem {
     source_url: newsItem.source_url,
     campus_id: newsItem.campus_id,
     created_at: newsItem.created_at,
+    image_url: newsItem.image_url || undefined,
     campus: newsItem.campus ? {
       id: newsItem.campus.id,
       name: newsItem.campus.name,

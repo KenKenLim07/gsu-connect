@@ -7,6 +7,7 @@ export interface NewsItem {
   published_at: string;  // We'll convert this to a timestamp when saving
   source_url: string;
   campus_id: string;     // Changed from campus to campus_id
+  image_url: string;     // Added image URL field
 }
 
 export async function scrapeGsuCstNews(): Promise<NewsItem[]> {
@@ -38,6 +39,21 @@ export async function scrapeGsuCstNews(): Promise<NewsItem[]> {
 
         const title = $$('h1').first().text().trim();
         const content = $$('.entry-content').text().trim();
+        
+        // Extract image URL
+        let image_url = '';
+        // Try to get featured image
+        const featuredImage = $$('.wp-block-post-featured-image img').first();
+        if (featuredImage.length) {
+          image_url = featuredImage.attr('src') || '';
+        }
+        // If no featured image, try to get first image from content
+        if (!image_url) {
+          const firstImage = $$('.entry-content img').first();
+          if (firstImage.length) {
+            image_url = firstImage.attr('src') || '';
+          }
+        }
         
         // Try multiple methods to extract the date
         let published_at = '';
@@ -76,7 +92,7 @@ export async function scrapeGsuCstNews(): Promise<NewsItem[]> {
         }
 
         // Debug extracted values
-        console.log('Extracted values:', { title, content: content?.slice(0, 100), published_at });
+        console.log('Extracted values:', { title, content: content?.slice(0, 100), published_at, image_url });
 
         if (!title || !content || !published_at) {
           console.warn('Missing field(s) in:', link);
@@ -89,6 +105,7 @@ export async function scrapeGsuCstNews(): Promise<NewsItem[]> {
           published_at,
           source_url: link,
           campus_id: 'CST',  // We'll need to get the actual UUID from the campuses table
+          image_url,
         });
       } catch (err) {
         console.warn('Failed to fetch or parse article:', link);

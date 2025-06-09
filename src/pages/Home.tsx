@@ -4,13 +4,16 @@ import { getNews } from "@/services/newsService";
 import type { NewsItem } from "@/types/news";
 import NewsPreviewCard from "@/components/news/NewsPreviewCard";
 import NewsCardSkeleton from "@/components/news/NewsCardSkeleton";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export default function Home() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,8 +21,7 @@ export default function Home() {
       try {
         const { data, error } = await getNews();
         if (error) throw error;
-        // Get only the 3 most recent news items
-        setNews(data.slice(0, 3));
+        setNews(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch news");
       } finally {
@@ -29,6 +31,17 @@ export default function Home() {
 
     fetchNews();
   }, []);
+
+  // Auto-advance the carousel
+  useEffect(() => {
+    if (news.length === 0) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
+    }, 5000); // Change slide every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [news.length]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -66,42 +79,67 @@ export default function Home() {
 
       <div className="flex-1 overflow-y-auto pt-2">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
-          <Card className="border border-neutral-400 rounded-xl p-2 bg-white text-neutral-900 shadow-sm">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between pb-1 border-b border-neutral-200">
-                <span className="text-sm font-bold text-neutral-600">News Preview</span>
-                <button
-                  onClick={() => navigate("/news")}
-                  className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-neutral-400 bg-neutral-100 text-neutral-700 hover:text-neutral-900 text-xs"
-                >
-                  <span>View All News</span>
-                  <span className="ml-0.5">→</span>
-                </button>
-              </div>
-              {loading ? (
-                // Show 3 skeleton cards while loading
-                Array.from({ length: 3 }).map((_, index) => (
-                  <NewsCardSkeleton key={index} />
-                ))
-              ) : error ? (
-                <div className="text-center py-6">
-                  <p className="text-red-600 mb-4">{error}</p>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                  >
-                    Try Again
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-1.5">
-                  {news.map((item) => (
-                    <NewsPreviewCard key={item.id} news={item} />
-                  ))}
-                </div>
-              )}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">News Preview</h2>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/news">View All News</Link>
+              </Button>
             </div>
-          </Card>
+            <Card className="border-0 shadow-none">
+              <div className="grid gap-6">
+                {loading ? (
+                  // Show 3 skeleton cards while loading
+                  Array.from({ length: 3 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-48 bg-gray-200 animate-pulse rounded-lg"
+                    />
+                  ))
+                ) : error ? (
+                  <div className="text-center py-6">
+                    <p className="text-red-600 mb-4">{error}</p>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative min-h-[425px] overflow-hidden">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={currentIndex}
+                        initial={{ opacity: 0, x: 100 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -100 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute w-full"
+                      >
+                        <NewsPreviewCard news={news[currentIndex]} />
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                )}
+              </div>
+            </Card>
+            {/* Manual navigation with dots */}
+            <div className="flex justify-center gap-2 mt-4">
+              {news.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentIndex(index)}
+                  className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                    index === currentIndex
+                      ? "bg-blue-500"
+                      : "bg-gray-300 hover:bg-gray-400"
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

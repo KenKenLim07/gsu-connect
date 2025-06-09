@@ -14,6 +14,7 @@ export interface NewsItem {
   campus_id: string;
   created_at: string;
   campus?: Campus;
+  image_url?: string;
 }
 
 export interface NewsResponse {
