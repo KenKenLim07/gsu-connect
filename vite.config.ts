@@ -5,7 +5,7 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "/gsu-connect",
+  base: '/gsu-connect/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -25,5 +25,12 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    proxy: {
+      '/gsu-connect/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/gsu-connect/, ''),
+      },
+    },
   },
 })

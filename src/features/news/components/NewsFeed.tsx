@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select";
 import NewsCard from "./NewsCard";
+import NewsCardSkeleton from "../../../components/news/NewsCardSkeleton";
 import { getNews } from "../../../services/newsService";
 import type { NewsItem } from "../../../types/news";
 
@@ -37,28 +38,6 @@ export default function NewsFeed() {
     new Date(b.published_at).getTime() - new Date(a.published_at).getTime()
   );
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-red-600 mb-4">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Try Again
-        </button>
-      </div>
-    );
-  }
-
   const sourceNames = Array.from(new Set(news.map(item => item.campus?.name).filter((name): name is string => name !== undefined)));
 
   return (
@@ -94,9 +73,26 @@ export default function NewsFeed() {
       <div className="flex-1 overflow-y-auto pt-2">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
           <div className="space-y-3">
-            {sortedNews.map((item) => (
-              <NewsCard key={item.id} news={item} />
-            ))}
+            {loading ? (
+              // Show 3 skeleton cards while loading
+              Array.from({ length: 3 }).map((_, index) => (
+                <NewsCardSkeleton key={index} />
+              ))
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-red-600 mb-4">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : (
+              sortedNews.map((item) => (
+                <NewsCard key={item.id} news={item} />
+              ))
+            )}
           </div>
         </div>
       </div>

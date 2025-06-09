@@ -2,14 +2,20 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const path = require('path');
 
 const app = express();
 const port = 3001;
+const baseUrl = '/gsu-connect';
 
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/news', async (req, res) => {
+// Serve static files from the dist directory with the base URL
+app.use(baseUrl, express.static(path.join(__dirname, 'dist')));
+
+// API routes with base URL
+app.get(`${baseUrl}/api/news`, async (req, res) => {
   try {
     const response = await axios.get('https://cst.gsu.edu.ph/', {
       headers: {
@@ -70,6 +76,17 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
+// Catch-all route to handle client-side routing
+app.get('*', (req, res) => {
+  // If the request starts with the base URL, serve the index.html
+  if (req.path.startsWith(baseUrl)) {
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  } else {
+    // For any other path, redirect to the base URL
+    res.redirect(baseUrl);
+  }
+});
+
 app.listen(port, () => {
-  console.log(`Proxy server running at http://localhost:${port}`);
+  console.log(`Proxy server running at http://localhost:${port}${baseUrl}`);
 }); 
