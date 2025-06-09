@@ -12,7 +12,6 @@ on:
 
 env:
   NODE_VERSION: '18'
-  CACHE_KEY: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('gsu-connect-backend/package-lock.json') }}
 
 jobs:
   validate-env:
