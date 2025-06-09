@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { getNews } from "@/services/newsService";
 import type { NewsItem } from "@/types/news";
 import NewsPreviewCard from "@/components/news/NewsPreviewCard";
