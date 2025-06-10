@@ -128,7 +128,7 @@ export async function saveNews(news: NewsItem[]) {
         } else {
           // Insert new news item
           const { error: insertError } = await supabase
-            .from('news')
+      .from('news')
             .insert(item);
           
           return { error: insertError, isUpdate: false };
