@@ -40,6 +40,7 @@ function mapSupabaseToNewsItem(item: unknown): NewsItem {
 
 export async function getNews(): Promise<NewsResponse> {
   try {
+    console.log('Fetching news from Supabase...');
     const { data, error, count } = await supabase
       .from('news')
       .select(`
@@ -58,7 +59,9 @@ export async function getNews(): Promise<NewsResponse> {
       return { data: [], error, count: 0 };
     }
 
+    console.log('Raw news data:', data);
     const newsItems: NewsItem[] = (data as unknown[]).map(mapSupabaseToNewsItem);
+    console.log('Mapped news items:', newsItems);
 
     return { data: newsItems, error: null, count: count || 0 };
   } catch (error) {

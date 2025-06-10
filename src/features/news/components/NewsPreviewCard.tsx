@@ -5,11 +5,34 @@ import { formatDistanceToNow } from "date-fns";
 import { motion } from "framer-motion";
 
 interface NewsPreviewCardProps {
-  news: NewsItem;
-  index: number;
+  news?: NewsItem;
+  index?: number;
 }
 
-export default function NewsPreviewCard({ news, index }: NewsPreviewCardProps) {
+export default function NewsPreviewCard({ news, index = 0 }: NewsPreviewCardProps) {
+  if (!news) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: index * 0.1 }}
+      >
+        <Card className="border border-neutral-200 hover:border-neutral-300 transition-colors duration-200">
+          <CardContent className="p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <Badge variant="secondary" className="text-xs">
+                Loading...
+              </Badge>
+              <span className="text-xs text-neutral-500">Loading...</span>
+            </div>
+            <div className="h-4 bg-neutral-200 rounded animate-pulse" />
+            <div className="h-3 bg-neutral-200 rounded animate-pulse" />
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
   const campus = news.campus?.name ?? "Unknown";
   const published = formatDistanceToNow(new Date(news.published_at), {
     addSuffix: true,

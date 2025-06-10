@@ -13,6 +13,22 @@ export interface NewsItem {
 export async function scrapeGsuCstNews(): Promise<NewsItem[]> {
   const homepage = 'https://cst.gsu.edu.ph/';
   const news: NewsItem[] = [];
+  
+  // Define selectors array at the top
+  const selectors = [
+    '.wp-block-post-featured-image img',
+    'figure.wp-block-post-featured-image img',
+    '.wp-block-image img',
+    '.entry-content img',
+    'img.wp-post-image',
+    'img[src*="uploads"]',
+    'img[src*="wp-content"]',
+    'img[src*="RANE"]',
+    'img[src*="2025"]',
+    'img[src*="LEA"]',
+    'img[src*="admissions"]',
+    'img'
+  ];
 
   console.log('Fetching news from:', homepage);
 

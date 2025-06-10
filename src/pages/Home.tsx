@@ -7,10 +7,12 @@ import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Home() {
-  const [news, setNews] = useState<NewsItem[]>([]);
+  const [mainCampusNews, setMainCampusNews] = useState<NewsItem[]>([]);
+  const [cstNews, setCstNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentMainIndex, setCurrentMainIndex] = useState(0);
+  const [currentCstIndex, setCurrentCstIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -25,9 +27,10 @@ export default function Home() {
     }
     timerRef.current = setInterval(() => {
       setDirection(1);
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
+      setCurrentMainIndex((prevIndex) => (prevIndex + 1) % mainCampusNews.length);
+      setCurrentCstIndex((prevIndex) => (prevIndex + 1) % cstNews.length);
     }, 3300);
-  }, [news.length]);
+  }, [mainCampusNews.length, cstNews.length]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
@@ -57,10 +60,12 @@ export default function Home() {
     // Only trigger if it's a significant swipe
     if (Math.abs(distance) > minSwipeDistance) {
       if (isLeftSwipe) {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
+        setCurrentMainIndex((prevIndex) => (prevIndex + 1) % mainCampusNews.length);
+        setCurrentCstIndex((prevIndex) => (prevIndex + 1) % cstNews.length);
       }
       if (isRightSwipe) {
-        setCurrentIndex((prevIndex) => (prevIndex - 1 + news.length) % news.length);
+        setCurrentMainIndex((prevIndex) => (prevIndex - 1 + mainCampusNews.length) % mainCampusNews.length);
+        setCurrentCstIndex((prevIndex) => (prevIndex - 1 + cstNews.length) % cstNews.length);
       }
     }
     resetTimer();
@@ -69,10 +74,30 @@ export default function Home() {
   useEffect(() => {
     const fetchNews = async () => {
       try {
+        console.log('Starting to fetch news...');
         const { data, error } = await getNews();
         if (error) throw error;
-        setNews(data);
+        console.log('Received news data:', data);
+        
+        // Log unique campus_id values
+        const uniqueCampusIds = [...new Set(data.map(item => item.campus_id))];
+        console.log('Unique campus_ids:', uniqueCampusIds);
+        
+        // Get the first news item to check the campus structure
+        const firstNews = data[0];
+        console.log('First news item campus:', firstNews.campus);
+        
+        // Filter based on campus name instead of ID
+        const mainCampus = data.filter(item => item.campus?.name === "Main Campus");
+        const cst = data.filter(item => item.campus?.name === "CST");
+        
+        console.log('Filtered Main Campus news:', mainCampus);
+        console.log('Filtered CST news:', cst);
+        
+        setMainCampusNews(mainCampus);
+        setCstNews(cst);
       } catch (err) {
+        console.error('Error in fetchNews:', err);
         setError(err instanceof Error ? err.message : "Failed to fetch news");
       } finally {
         setLoading(false);
@@ -84,7 +109,7 @@ export default function Home() {
 
   // Auto-advance the carousel
   useEffect(() => {
-    if (news.length === 0) return;
+    if (mainCampusNews.length === 0 && cstNews.length === 0) return;
     resetTimer();
 
     return () => {
@@ -92,17 +117,25 @@ export default function Home() {
         clearInterval(timerRef.current);
       }
     };
-  }, [news.length, resetTimer]);
+  }, [mainCampusNews.length, cstNews.length, resetTimer]);
 
-  const handlePrevious = () => {
+  const handlePrevious = (type: 'main' | 'cst') => {
     setDirection(-1);
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + news.length) % news.length);
+    if (type === 'main') {
+      setCurrentMainIndex((prevIndex) => (prevIndex - 1 + mainCampusNews.length) % mainCampusNews.length);
+    } else {
+      setCurrentCstIndex((prevIndex) => (prevIndex - 1 + cstNews.length) % cstNews.length);
+    }
     resetTimer();
   };
 
-  const handleNext = () => {
+  const handleNext = (type: 'main' | 'cst') => {
     setDirection(1);
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
+    if (type === 'main') {
+      setCurrentMainIndex((prevIndex) => (prevIndex + 1) % mainCampusNews.length);
+    } else {
+      setCurrentCstIndex((prevIndex) => (prevIndex + 1) % cstNews.length);
+    }
     resetTimer();
   };
 
@@ -114,9 +147,9 @@ export default function Home() {
             <Card className="border-0 shadow-none bg-transparent">
               <div className="grid gap-2">
                 <div className="text-left mb-2">
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-1">What's News</h2>
-                  <p className="text-xs text-gray-500">Here's what's happening at Guimaras State University</p>
-            </div>
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-1">Main Campus News</h2>
+                  <p className="text-xs text-gray-500">Latest updates from the Main Campus</p>
+                </div>
                 {loading ? (
                   <div className="relative min-h-[425px]">
                     <div className="w-full h-[330px] md:h-[500px] bg-gray-100 animate-pulse rounded-lg" />
@@ -125,20 +158,20 @@ export default function Home() {
                       <div className="flex items-center justify-center gap-2">
                         <div className="h-4 bg-gray-100 animate-pulse rounded w-20" />
                         <div className="h-4 bg-gray-100 animate-pulse rounded w-24" />
-          </div>
-        </div>
-      </div>
-            ) : error ? (
+                      </div>
+                    </div>
+                  </div>
+                ) : error ? (
                   <div className="text-center py-6">
-                <p className="text-red-600 mb-4">{error}</p>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  Try Again
-                </button>
-              </div>
-            ) : (
+                    <p className="text-red-600 mb-4">{error}</p>
+                    <button
+                      onClick={() => window.location.reload()}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                ) : (
                   <div 
                     className="relative min-h-[425px] group"
                     onTouchStart={onTouchStart}
@@ -147,7 +180,7 @@ export default function Home() {
                   >
                     {/* Previous Button */}
                     <button
-                      onClick={handlePrevious}
+                      onClick={() => handlePrevious('main')}
                       className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg hidden md:block opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
                       aria-label="Previous slide"
                     >
@@ -156,7 +189,7 @@ export default function Home() {
 
                     {/* Next Button */}
                     <button
-                      onClick={handleNext}
+                      onClick={() => handleNext('main')}
                       className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg hidden md:block opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
                       aria-label="Next slide"
                     >
@@ -165,7 +198,7 @@ export default function Home() {
 
                     <AnimatePresence mode="wait">
                       <motion.div
-                        key={currentIndex}
+                        key={currentMainIndex}
                         initial={{ opacity: 0, x: direction * 50, scale: 0.95 }}
                         animate={{ 
                           opacity: 1, 
@@ -200,27 +233,120 @@ export default function Home() {
                           perspective: '1000px'
                         }}
                       >
-                        <NewsPreviewCard news={news[currentIndex]} />
+                        {mainCampusNews.length > 0 ? (
+                          <NewsPreviewCard news={mainCampusNews[currentMainIndex]} />
+                        ) : (
+                          <div className="text-center py-6">
+                            <p className="text-gray-500">No news available for Main Campus</p>
+                          </div>
+                        )}
                       </motion.div>
                     </AnimatePresence>
-
-                    {/* Manual navigation with dots */}
-                    <div className="absolute bottom-0 left-0 right-0 flex justify-center gap-2 pb-2 md:static md:mt-4">
-                      {news.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentIndex(index)}
-                          className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                            index === currentIndex
-                              ? "bg-blue-500"
-                              : "bg-gray-300 hover:bg-gray-400"
-                          }`}
-                          aria-label={`Go to slide ${index + 1}`}
-                        />
-                      ))}
-                    </div>
                   </div>
-            )}
+                )}
+              </div>
+            </Card>
+
+            <Card className="border-0 shadow-none bg-transparent">
+              <div className="grid gap-2">
+                <div className="text-left mb-2">
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-1">CST News</h2>
+                  <p className="text-xs text-gray-500">Latest updates from the College of Science and Technology</p>
+            </div>
+                {loading ? (
+                  <div className="relative min-h-[425px]">
+                    <div className="w-full h-[330px] md:h-[500px] bg-gray-100 animate-pulse rounded-lg" />
+                    <div className="mt-2 space-y-2 p-1.5">
+                      <div className="h-4 bg-gray-100 animate-pulse rounded w-3/4 mx-auto" />
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="h-4 bg-gray-100 animate-pulse rounded w-20" />
+                        <div className="h-4 bg-gray-100 animate-pulse rounded w-24" />
+          </div>
+        </div>
+      </div>
+            ) : error ? (
+                  <div className="text-center py-6">
+                <p className="text-red-600 mb-4">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : (
+                  <div 
+                    className="relative min-h-[425px] group"
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                  >
+                    {/* Previous Button */}
+                    <button
+                      onClick={() => handlePrevious('cst')}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg hidden md:block opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
+                      aria-label="Previous slide"
+                    >
+                      <ChevronLeft className="w-6 h-6 text-gray-600" />
+                    </button>
+
+                    {/* Next Button */}
+                    <button
+                      onClick={() => handleNext('cst')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg hidden md:block opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
+                      aria-label="Next slide"
+                    >
+                      <ChevronRight className="w-6 h-6 text-gray-600" />
+                    </button>
+
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={currentCstIndex}
+                        initial={{ opacity: 0, x: direction * 50, scale: 0.95 }}
+                        animate={{ 
+                          opacity: 1, 
+                          x: 0,
+                          scale: 1,
+                          transition: {
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 25,
+                            mass: 0.5,
+                            velocity: 2,
+                            duration: 0.4
+                          }
+                        }}
+                        exit={{ 
+                          opacity: 0, 
+                          x: -direction * 50,
+                          scale: 0.95,
+                          transition: {
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 25,
+                            mass: 0.5,
+                            velocity: 2,
+                            duration: 0.4
+                          }
+                        }}
+                        className="w-full relative will-change-transform"
+                        style={{
+                          transform: 'translateZ(0)',
+                          backfaceVisibility: 'hidden',
+                          perspective: '1000px'
+                        }}
+                      >
+                        {cstNews.length > 0 ? (
+                          <NewsPreviewCard news={cstNews[currentCstIndex]} />
+                        ) : (
+                          <div className="text-center py-6">
+                            <p className="text-gray-500">No news available for CST</p>
+                          </div>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+                )}
               </div>
             </Card>
           </div>
