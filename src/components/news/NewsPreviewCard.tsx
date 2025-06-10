@@ -4,6 +4,7 @@ import { useState } from "react";
 
 export default function NewsPreviewCard({ news }: { news: NewsItem }) {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const formattedDate = new Date(news.published_at).toLocaleDateString("en-US", {
     year: "numeric",
@@ -13,10 +14,25 @@ export default function NewsPreviewCard({ news }: { news: NewsItem }) {
 
   const defaultImage = "https://placehold.co/800x500/9ca3af/ffffff?text=%F0%9F%94%B4%0ANo+image+from+the+source&textSize=small";
 
-  return (
-    <div className="flex flex-col">
-      <div className="relative w-full h-[330px] md:h-[500px] overflow-auto">
+  const handleClick = () => {
+    if (news.source_url) {
+      window.open(news.source_url, '_blank');
+    }
+  };
 
+  return (
+    <div 
+      className="flex flex-col cursor-pointer hover:opacity-90 transition-opacity"
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          handleClick();
+        }
+      }}
+    >
+      <div className="relative w-full h-[330px] md:h-[500px] overflow-auto">
         <img
           src={news.image_url || defaultImage}
           alt={news.title}
@@ -25,12 +41,21 @@ export default function NewsPreviewCard({ news }: { news: NewsItem }) {
           }`}
           onError={() => {
             console.error("Image failed to load:", news.image_url);
+            setIsLoading(false);
           }}
-          onLoad={() => setImageLoaded(true)}
+          onLoad={() => {
+            setImageLoaded(true);
+            setIsLoading(false);
+          }}
         />
-        {!imageLoaded && (
+        {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+            <div 
+              className={`w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin ${
+                imageLoaded ? 'animate-pause' : ''
+              }`}
+              style={{ animationPlayState: imageLoaded ? 'paused' : 'running' }}
+            ></div>
           </div>
         )}
       </div>

@@ -94,13 +94,6 @@ export default function Home() {
     };
   }, [news.length, resetTimer]);
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
-  };
-
   const handlePrevious = () => {
     setDirection(-1);
     setCurrentIndex((prevIndex) => (prevIndex - 1 + news.length) % news.length);
@@ -115,25 +108,15 @@ export default function Home() {
 
   return (
     <div className="h-full flex flex-col">
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-center py-8"
-      >
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {getGreeting()}
-        </h1>
-        <p className="text-gray-600 text-lg">
-          Here's what's happening at Guimaras State University
-        </p>
-      </motion.div>
-
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
-          <div className="space-y-4">
+          <div className="space-y-2">
             <Card className="border-0 shadow-none bg-transparent">
-              <div className="grid gap-6">
+              <div className="grid gap-2">
+                <div className="text-left mb-2">
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-1">What's News</h2>
+                  <p className="text-xs text-gray-500">Here's what's happening at Guimaras State University</p>
+            </div>
                 {loading ? (
                   <div className="relative min-h-[425px]">
                     <div className="w-full h-[330px] md:h-[500px] bg-gray-100 animate-pulse rounded-lg" />
@@ -142,20 +125,20 @@ export default function Home() {
                       <div className="flex items-center justify-center gap-2">
                         <div className="h-4 bg-gray-100 animate-pulse rounded w-20" />
                         <div className="h-4 bg-gray-100 animate-pulse rounded w-24" />
-                      </div>
-                    </div>
-                  </div>
-                ) : error ? (
+          </div>
+        </div>
+      </div>
+            ) : error ? (
                   <div className="text-center py-6">
-                    <p className="text-red-600 mb-4">{error}</p>
-                    <button
-                      onClick={() => window.location.reload()}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                      Try Again
-                    </button>
-                  </div>
-                ) : (
+                <p className="text-red-600 mb-4">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : (
                   <div 
                     className="relative min-h-[425px] group"
                     onTouchStart={onTouchStart}
@@ -237,7 +220,7 @@ export default function Home() {
                       ))}
                     </div>
                   </div>
-                )}
+            )}
               </div>
             </Card>
           </div>
