@@ -88,6 +88,13 @@ function parseDate(dateStr: string): string {
   return date.toISOString();
 }
 
+interface ExistingNews {
+  id: string;
+  title: string;
+  campus_id: string;
+  image_url: string | null;
+}
+
 export async function saveNews(news: NewsItem[]) {
   if (!news.length) return { error: null, count: 0 };
   
@@ -107,42 +114,106 @@ export async function saveNews(news: NewsItem[]) {
       };
     }));
 
-    // Check for existing news items and update them
-    const results = await Promise.all(
-      processedNews.map(async (item) => {
-        const { data: existingNews } = await supabase
-          .from('news')
-          .select('id')
-          .eq('title', item.title)
-          .eq('campus_id', item.campus_id)
-          .maybeSingle();
+    console.log('Processed news items:', processedNews.length);
 
-        if (existingNews) {
-          // Update existing news item with new image URL
-          const { error: updateError } = await supabase
-            .from('news')
-            .update({ image_url: item.image_url })
-            .eq('id', existingNews.id as string);
-          
-          return { error: updateError, isUpdate: true };
-        } else {
-          // Insert new news item
-          const { error: insertError } = await supabase
+    // First, get all existing news items for this batch
+    const { data: existingNews, error: fetchError } = await supabase
       .from('news')
-            .insert(item);
-          
-          return { error: insertError, isUpdate: false };
+      .select('id, title, campus_id, image_url')
+      .in('title', processedNews.map(item => item.title));
+
+    if (fetchError) {
+      console.error('Error fetching existing news:', fetchError);
+      throw fetchError;
+    }
+
+    console.log('Found existing news items:', existingNews?.length || 0);
+
+    const typedExistingNews = (existingNews || []) as ExistingNews[];
+
+    // Separate news items into updates and inserts
+    const toUpdate = processedNews.filter(item => 
+      typedExistingNews.some(existing => 
+        existing.title === item.title && existing.campus_id === item.campus_id
+      )
+    );
+    
+    const toInsert = processedNews.filter(item => 
+      !typedExistingNews.some(existing => 
+        existing.title === item.title && existing.campus_id === item.campus_id
+      )
+    );
+
+    console.log('Items to update:', toUpdate.length);
+    console.log('Items to insert:', toInsert.length);
+
+    // Perform updates
+    const updateResults = await Promise.all(
+      toUpdate.map(async (item) => {
+        const existing = typedExistingNews.find(e => 
+          e.title === item.title && e.campus_id === item.campus_id
+        );
+        if (!existing) return { error: null, isUpdate: true };
+
+        console.log('Updating article:', {
+          title: item.title,
+          oldImage: existing.image_url,
+          newImage: item.image_url
+        });
+
+        const { error } = await supabase
+          .from('news')
+          .update({ 
+            content: item.content,
+            published_at: item.published_at,
+            source_url: item.source_url,
+            image_url: item.image_url
+          })
+          .eq('id', existing.id);
+    
+    if (error) {
+          console.error('Error updating article:', error);
         }
+        
+        return { error, isUpdate: true };
       })
     );
 
-    const errors = results.filter(r => r.error);
+    // Perform inserts
+    const insertResults = await Promise.all(
+      toInsert.map(async (item) => {
+        console.log('Inserting new article:', {
+          title: item.title,
+          image: item.image_url
+        });
+
+        const { error } = await supabase
+          .from('news')
+          .insert(item);
+        
+        if (error) {
+          console.error('Error inserting article:', error);
+        }
+        
+        return { error, isUpdate: false };
+      })
+    );
+
+    const allResults = [...updateResults, ...insertResults];
+    const errors = allResults.filter(r => r.error);
+    
     if (errors.length > 0) {
       console.error('Errors during save/update:', errors);
     }
 
-    const updateCount = results.filter(r => r.isUpdate).length;
-    const insertCount = results.filter(r => !r.isUpdate).length;
+    const updateCount = updateResults.length;
+    const insertCount = insertResults.length;
+
+    console.log('Save operation complete:', {
+      updates: updateCount,
+      inserts: insertCount,
+      errors: errors.length
+    });
 
     return { 
       error: errors.length > 0 ? errors[0].error as Error : null, 

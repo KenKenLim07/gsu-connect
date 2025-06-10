@@ -17,14 +17,162 @@ export async function scrapeGsuCstNews(): Promise<NewsItem[]> {
   console.log('Fetching news from:', homepage);
 
   try {
+    // Try multiple possible URLs for the admissions article
+    const possibleAdmissionsUrls = [
+      'https://cst.gsu.edu.ph/2025/05/05/admissions-now-open-for-bsemc-and-blis-programs-at-the-college-of-science-and-technology-starting-may-5-2025/',
+      'https://cst.gsu.edu.ph/admissions-now-open/',
+      'https://cst.gsu.edu.ph/2025/05/admissions-now-open/',
+      'https://cst.gsu.edu.ph/2025/admissions-now-open/'
+    ];
+
+    for (const specificArticleUrl of possibleAdmissionsUrls) {
+      try {
+        console.log('Trying to fetch admissions article from:', specificArticleUrl);
+        const specificArticleRes = await axios.get(specificArticleUrl);
+        const $$ = cheerio.load(specificArticleRes.data);
+        
+        const title = $$('h1').first().text().trim();
+        const content = $$('.entry-content').text().trim();
+        
+        // Only process if we found a title that mentions admissions
+        if (title.toLowerCase().includes('admission')) {
+          // Extract image URL
+          let image_url = '';
+          
+          // Log all images found in the article
+          console.log('All images in specific article:');
+          $$('img').each((i, img) => {
+            const src = $$(img).attr('src');
+            const alt = $$(img).attr('alt');
+            const classes = $$(img).attr('class');
+            console.log(`Image ${i + 1}:`, { src, alt, classes });
+          });
+
+          // Try to find an image that matches the article title
+          const titleWords = title.toLowerCase().split(' ');
+          for (const img of $$('img').get()) {
+            const src = $$(img).attr('src') || '';
+            const alt = $$(img).attr('alt') || '';
+            const classes = $$(img).attr('class') || '';
+            
+            // Check if any word from the title appears in the image attributes
+            const matchesTitle = titleWords.some(word => 
+              word.length > 3 && (
+                src.toLowerCase().includes(word) ||
+                alt.toLowerCase().includes(word) ||
+                classes.toLowerCase().includes(word)
+              )
+            );
+            
+            if (matchesTitle) {
+              image_url = src.startsWith('/') ? `https://cst.gsu.edu.ph${src}` : src;
+              console.log('Found image matching article title:', image_url);
+              break;
+            }
+          }
+
+          // If no title-matching image found, try the selectors
+          if (!image_url) {
+            for (const selector of selectors) {
+              const img = $$(selector).first();
+              if (img.length) {
+                const src = img.attr('src') || '';
+                console.log(`Found image with selector ${selector}:`, src);
+                
+                // Validate the image URL
+                if (src && (src.startsWith('http') || src.startsWith('/'))) {
+                  image_url = src.startsWith('/') ? `https://cst.gsu.edu.ph${src}` : src;
+                  console.log('Validated image URL:', image_url);
+                  break;
+                }
+              }
+            }
+          }
+
+          // If still no image, try to find any image in the article
+          if (!image_url) {
+            const anyImage = $$('img').first();
+            if (anyImage.length) {
+              const src = anyImage.attr('src') || '';
+              if (src) {
+                image_url = src.startsWith('/') ? `https://cst.gsu.edu.ph${src}` : src;
+                console.log('Found fallback image:', image_url);
+              }
+            }
+          }
+
+          // Extract date from URL or content
+          let published_at = '';
+          const urlMatch = specificArticleUrl.match(/\/(\d{4})\/(\d{2})\/(\d{2})\//);
+          if (urlMatch) {
+            const [_, year, month, day] = urlMatch;
+            const date = new Date(`${year}-${month}-${day}`);
+            published_at = date.toLocaleDateString('en-US', { 
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+          } else {
+            // Try to extract date from content
+            const dateMatch = content.match(/(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},\s+\d{4}/);
+            if (dateMatch) {
+              published_at = dateMatch[0];
+            } else {
+              // Default to current date if no date found
+              published_at = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              });
+            }
+          }
+
+          if (title && content) {
+            news.push({
+              title,
+              content,
+              published_at,
+              source_url: specificArticleUrl,
+              campus_id: 'CST',
+              image_url,
+            });
+            console.log('Added admissions article:', title);
+            break; // Stop trying other URLs once we find the article
+          }
+        }
+      } catch (err) {
+        console.warn(`Failed to fetch admissions article from ${specificArticleUrl}:`, err);
+        continue; // Try the next URL
+      }
+    }
+
+    // Then proceed with the regular scraping
     const { data } = await axios.get(homepage);
     const $ = cheerio.load(data);
 
-    // Get all post links from <figure><a href="...">
+    // Get all post links from different possible structures
     const postLinks: string[] = [];
+    
+    // Method 1: Featured image links
     $('figure.wp-block-post-featured-image a').each((_, el) => {
       const href = $(el).attr('href');
       if (href) postLinks.push(href);
+    });
+
+    // Method 2: Article links in the main content
+    $('article a').each((_, el) => {
+      const href = $(el).attr('href');
+      if (href && href.includes('/2025/') && !postLinks.includes(href)) {
+        postLinks.push(href);
+      }
+    });
+
+    // Method 3: Links in the main content area
+    $('main a').each((_, el) => {
+      const href = $(el).attr('href');
+      if (href && href.includes('/2025/') && !postLinks.includes(href)) {
+        postLinks.push(href);
+      }
     });
 
     console.log(`Found ${postLinks.length} post links.`);
@@ -42,16 +190,85 @@ export async function scrapeGsuCstNews(): Promise<NewsItem[]> {
         
         // Extract image URL
         let image_url = '';
-        // Try to get featured image
-        const featuredImage = $$('.wp-block-post-featured-image img').first();
-        if (featuredImage.length) {
-          image_url = featuredImage.attr('src') || '';
+        
+        // Debug HTML structure
+        console.log('Article HTML structure:', $$('main').html()?.slice(0, 1000));
+        
+        // Try multiple selectors for featured image
+        const selectors = [
+          '.wp-block-post-featured-image img',
+          'figure.wp-block-post-featured-image img',
+          '.wp-block-image img',
+          '.entry-content img',
+          'img.wp-post-image',
+          'img[src*="uploads"]',
+          'img[src*="wp-content"]',
+          'img[src*="RANE"]',  // Added specific selector for RANE images
+          'img[src*="2025"]',  // Added selector for 2025 images
+          'img[src*="LEA"]',   // Added selector for LEA images
+          'img[src*="admissions"]', // Added selector for admissions-related images
+          'img'  // Added fallback to any image
+        ];
+
+        // Log all images found in the article
+        console.log('All images in article:');
+        $$('img').each((i, img) => {
+          const src = $$(img).attr('src');
+          const alt = $$(img).attr('alt');
+          const classes = $$(img).attr('class');
+          console.log(`Image ${i + 1}:`, { src, alt, classes });
+        });
+
+        // First try to find an image that matches the article title
+        const titleWords = title.toLowerCase().split(' ');
+        for (const img of $$('img').get()) {
+          const src = $$(img).attr('src') || '';
+          const alt = $$(img).attr('alt') || '';
+          const classes = $$(img).attr('class') || '';
+          
+          // Check if any word from the title appears in the image attributes
+          const matchesTitle = titleWords.some(word => 
+            word.length > 3 && (
+              src.toLowerCase().includes(word) ||
+              alt.toLowerCase().includes(word) ||
+              classes.toLowerCase().includes(word)
+            )
+          );
+          
+          if (matchesTitle) {
+            image_url = src.startsWith('/') ? `https://cst.gsu.edu.ph${src}` : src;
+            console.log('Found image matching article title:', image_url);
+            break;
+          }
         }
-        // If no featured image, try to get first image from content
+
+        // If no title-matching image found, try the selectors
         if (!image_url) {
-          const firstImage = $$('.entry-content img').first();
-          if (firstImage.length) {
-            image_url = firstImage.attr('src') || '';
+          for (const selector of selectors) {
+            const img = $$(selector).first();
+            if (img.length) {
+              const src = img.attr('src') || '';
+              console.log(`Found image with selector ${selector}:`, src);
+              
+              // Validate the image URL
+              if (src && (src.startsWith('http') || src.startsWith('/'))) {
+                image_url = src.startsWith('/') ? `https://cst.gsu.edu.ph${src}` : src;
+                console.log('Validated image URL:', image_url);
+                break;
+              }
+            }
+          }
+        }
+
+        // If still no image, try to find any image in the article
+        if (!image_url) {
+          const anyImage = $$('img').first();
+          if (anyImage.length) {
+            const src = anyImage.attr('src') || '';
+            if (src) {
+              image_url = src.startsWith('/') ? `https://cst.gsu.edu.ph${src}` : src;
+              console.log('Found fallback image:', image_url);
+            }
           }
         }
         

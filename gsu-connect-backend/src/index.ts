@@ -26,11 +26,11 @@ async function main() {
   const news = await scrapeGsuCstNews();
   console.log(`Found ${news.length} articles.`);
   if (news.length) {
-    const { error, count } = await saveNews(news);
+    const { error, count, updateCount } = await saveNews(news);
     if (error) {
       console.error('Error saving news to Supabase:', error.message);
     } else {
-      console.log(`Saved ${count ?? news.length} articles to Supabase.`);
+      console.log(`Saved ${count} new articles and updated ${updateCount} existing articles in Supabase.`);
     }
   } else {
     console.log('No news articles found.');
