@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { getNews } from "@/services/newsService";
 import type { NewsItem } from "@/types/news";
 import NewsPreviewCard from "@/components/news/NewsPreviewCard";
@@ -11,8 +11,60 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(0); // -1 for left, 1 for right
-  const [isHovered, setIsHovered] = useState(false);
+  const [direction, setDirection] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
+
+  const resetTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    timerRef.current = setInterval(() => {
+      setDirection(1);
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
+    }, 3300);
+  }, [news.length]);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    resetTimer();
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    const currentTouch = e.targetTouches[0].clientX;
+    setTouchEnd(currentTouch);
+    
+    // Update direction during the swipe
+    if (touchStart) {
+      const distance = touchStart - currentTouch;
+      if (Math.abs(distance) > minSwipeDistance) {
+        setDirection(distance > 0 ? 1 : -1);
+      }
+    }
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    // Only trigger if it's a significant swipe
+    if (Math.abs(distance) > minSwipeDistance) {
+      if (isLeftSwipe) {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
+      }
+      if (isRightSwipe) {
+        setCurrentIndex((prevIndex) => (prevIndex - 1 + news.length) % news.length);
+      }
+    }
+    resetTimer();
+  };
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -32,15 +84,15 @@ export default function Home() {
 
   // Auto-advance the carousel
   useEffect(() => {
-    if (news.length === 0 || isHovered) return;
+    if (news.length === 0) return;
+    resetTimer();
 
-    const interval = setInterval(() => {
-      setDirection(1);
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
-    }, 5000); // Change slide every 5 seconds
-
-    return () => clearInterval(interval);
-  }, [news.length, isHovered]);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [news.length, resetTimer]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -52,11 +104,13 @@ export default function Home() {
   const handlePrevious = () => {
     setDirection(-1);
     setCurrentIndex((prevIndex) => (prevIndex - 1 + news.length) % news.length);
+    resetTimer();
   };
 
   const handleNext = () => {
     setDirection(1);
     setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
+    resetTimer();
   };
 
   return (
@@ -104,13 +158,14 @@ export default function Home() {
                 ) : (
                   <div 
                     className="relative min-h-[425px] group"
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
                   >
                     {/* Previous Button */}
                     <button
                       onClick={handlePrevious}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg hidden md:block opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
                       aria-label="Previous slide"
                     >
                       <ChevronLeft className="w-6 h-6 text-gray-600" />
@@ -119,7 +174,7 @@ export default function Home() {
                     {/* Next Button */}
                     <button
                       onClick={handleNext}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg hidden md:block opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
                       aria-label="Next slide"
                     >
                       <ChevronRight className="w-6 h-6 text-gray-600" />
@@ -128,26 +183,39 @@ export default function Home() {
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={currentIndex}
-                        initial={{ opacity: 0, x: direction * 50 }}
+                        initial={{ opacity: 0, x: direction * 50, scale: 0.95 }}
                         animate={{ 
                           opacity: 1, 
                           x: 0,
+                          scale: 1,
                           transition: {
                             type: "spring",
-                            stiffness: 100,
-                            damping: 20,
-                            mass: 1
+                            stiffness: 400,
+                            damping: 25,
+                            mass: 0.5,
+                            velocity: 2,
+                            duration: 0.4
                           }
                         }}
                         exit={{ 
                           opacity: 0, 
                           x: -direction * 50,
+                          scale: 0.95,
                           transition: {
-                            duration: 0.2,
-                            ease: "easeInOut"
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 25,
+                            mass: 0.5,
+                            velocity: 2,
+                            duration: 0.4
                           }
                         }}
-                        className="w-full"
+                        className="w-full relative will-change-transform"
+                        style={{
+                          transform: 'translateZ(0)',
+                          backfaceVisibility: 'hidden',
+                          perspective: '1000px'
+                        }}
                       >
                         <NewsPreviewCard news={news[currentIndex]} />
                       </motion.div>

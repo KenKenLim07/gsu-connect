@@ -15,7 +15,8 @@ export default function NewsPreviewCard({ news }: { news: NewsItem }) {
 
   return (
     <div className="flex flex-col">
-      <div className="relative w-full h-[330px] md:h-[500px]">
+      <div className="relative w-full h-[330px] md:h-[500px] overflow-auto">
+
         <img
           src={news.image_url || defaultImage}
           alt={news.title}
