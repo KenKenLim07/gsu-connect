@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { getNews } from "@/services/newsService";
 import type { NewsItem } from "@/types/news";
 import NewsPreviewCard from "@/components/news/NewsPreviewCard";
-import NewsCardSkeleton from "@/components/news/NewsCardSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +12,6 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -52,41 +49,24 @@ export default function Home() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="sticky top-14 z-40 bg-white w-full">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <motion.h1
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="text-2xl font-bold text-gray-900"
-              >
-                {getGreeting()}, student!
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="text-sm text-gray-600"
-              >
-                Here's what's happening at Guimaras State University.
-              </motion.p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-center py-8"
+      >
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          {getGreeting()}
+        </h1>
+        <p className="text-gray-600 text-lg">
+          Here's what's happening at Guimaras State University
+        </p>
+      </motion.div>
 
-      <div className="flex-1 overflow-y-auto pt-2">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">News Preview</h2>
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/news">View All News</Link>
-              </Button>
-            </div>
-            <Card className="border-0 shadow-none">
+            <Card className="border-0 shadow-none bg-transparent">
               <div className="grid gap-6">
                 {loading ? (
                   // Show 3 skeleton cards while loading
@@ -107,15 +87,19 @@ export default function Home() {
                     </button>
                   </div>
                 ) : (
-                  <div className="relative min-h-[425px] overflow-hidden">
+                  <div className="relative min-h-[425px] perspective-1000">
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={currentIndex}
-                        initial={{ opacity: 0, x: 100 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -100 }}
-                        transition={{ duration: 0.5 }}
-                        className="absolute w-full"
+                        initial={{ rotateY: 90, opacity: 0 }}
+                        animate={{ rotateY: 0, opacity: 1 }}
+                        exit={{ rotateY: -90, opacity: 0 }}
+                        transition={{ 
+                          duration: 0.4,
+                          ease: [0.4, 0, 0.2, 1],
+                          opacity: { duration: 0.2 }
+                        }}
+                        className="w-full preserve-3d"
                       >
                         <NewsPreviewCard news={news[currentIndex]} />
                       </motion.div>
