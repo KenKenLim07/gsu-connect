@@ -1,11 +1,15 @@
-import { Badge } from "../ui/badge";
 import type { NewsItem } from "../../types/news";
 import { useState } from "react";
 
-export default function NewsPreviewCard({ news }: { news: NewsItem }) {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+interface NewsPreviewCardProps {
+  news: NewsItem;
+  variant?: 'main' | 'cst';
+}
 
+export default function NewsPreviewCard({ 
+  news, 
+  variant = 'main'
+}: NewsPreviewCardProps) {
   const formattedDate = new Date(news.published_at).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -22,7 +26,7 @@ export default function NewsPreviewCard({ news }: { news: NewsItem }) {
 
   return (
     <div 
-      className="flex flex-col cursor-pointer hover:opacity-90 transition-opacity"
+      className="cursor-pointer hover:opacity-90 transition-opacity"
       onClick={handleClick}
       role="button"
       tabIndex={0}
@@ -32,45 +36,27 @@ export default function NewsPreviewCard({ news }: { news: NewsItem }) {
         }
       }}
     >
-      <div className="relative w-full h-[330px] md:h-[500px] overflow-auto">
+      <div className={`relative w-full ${variant === 'main' ? 'aspect-[16/9]' : 'h-[330px] md:h-[500px]'} overflow-hidden rounded-lg bg-gray-50`}>
         <img
           src={news.image_url || defaultImage}
           alt={news.title}
-          className={`w-full h-full object-contain transition-opacity duration-300 ${
-            imageLoaded ? "opacity-100" : "opacity-0"
+          className={`w-full h-full ${
+            variant === 'main' 
+              ? 'object-cover object-bottom' 
+              : 'object-contain'
           }`}
-          onError={() => {
-            console.error("Image failed to load:", news.image_url);
-            setIsLoading(false);
-          }}
-          onLoad={() => {
-            setImageLoaded(true);
-            setIsLoading(false);
-          }}
         />
-        {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div 
-              className={`w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin ${
-                imageLoaded ? 'animate-pause' : ''
-              }`}
-              style={{ animationPlayState: imageLoaded ? 'paused' : 'running' }}
-            ></div>
-          </div>
-        )}
       </div>
 
-      <div className="space-y-0.5 p-1.5">
-        <div className="flex items-center justify-center gap-1">
-          <h3 className="text-xs font-semibold text-gray-900 line-clamp-2 break-words text-center">{news.title}</h3>
-        </div>
-        <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
-          <Badge variant="outline" className="bg-gray-100 text-xs px-1.5 py-0.5 rounded-md whitespace-nowrap shrink-0">
-            {news.campus?.name || "Unknown Campus"}
-          </Badge>
+      <div className="mt-1 h-[60px]">
+        <h3 className="text-sm font-medium text-gray-900 line-clamp-2">{news.title}</h3>
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+          <span className="px-1.5 py-0.5 bg-gray-100 rounded-md whitespace-nowrap">
+            {news.source_url ? new URL(news.source_url).hostname.replace('www.', '') : 'GSU'}
+          </span>
           <span className="whitespace-nowrap">{formattedDate}</span>
         </div>
       </div>
     </div>
   );
-}
+} 
