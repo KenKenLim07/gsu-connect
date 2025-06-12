@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { NewsItem } from "@/types/news";
 import NewsPreviewCard from "./NewsPreviewCard";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,6 +11,11 @@ interface CstNewsProps {
 }
 
 export default function CstNews({ news, loading, error }: CstNewsProps) {
+  // Sort news by published_at date and take only the 10 most recent
+  const recentNews = [...news]
+    .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
+    .slice(0, 10);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -43,23 +48,33 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
 
     if (Math.abs(distance) > minSwipeDistance) {
       if (isLeftSwipe) {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
+        setDirection(1);
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % recentNews.length);
       }
       if (isRightSwipe) {
-        setCurrentIndex((prevIndex) => (prevIndex - 1 + news.length) % news.length);
+        setDirection(-1);
+        setCurrentIndex((prevIndex) => (prevIndex - 1 + recentNews.length) % recentNews.length);
       }
     }
   };
 
   const handlePrevious = () => {
     setDirection(-1);
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + news.length) % news.length);
+    setCurrentIndex((prev) => (prev - 1 + recentNews.length) % recentNews.length);
   };
 
   const handleNext = () => {
     setDirection(1);
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
+    setCurrentIndex((prev) => (prev + 1) % recentNews.length);
   };
+
+  // Reset direction after animation completes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDirection(0);
+    }, 400); // Match the animation duration
+    return () => clearTimeout(timer);
+  }, [currentIndex]);
 
   if (loading) {
     return (
@@ -92,33 +107,33 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
 
   return (
     <div className="w-full">
-      <div className="text-left mb-0.5">
+      <div className="text-center mb-0.5">
         <h2 className="text-sm font-semibold text-gray-900">CST News</h2>
         <p className="text-xs text-gray-500">Latest updates from the College of Science and Technology</p>
       </div>
       <div 
-        className="relative min-h-[425px] group"
+        className="relative group"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
         <button
           onClick={handlePrevious}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-white/80 backdrop-blur-sm shadow-sm block hover:bg-white"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-sm block hover:bg-white"
           aria-label="Previous slide"
         >
-          <ChevronLeft className="w-4 h-4 text-gray-600" />
+          <ChevronLeft className="w-5 h-5 text-gray-600" />
         </button>
 
         <button
           onClick={handleNext}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-white/80 backdrop-blur-sm shadow-sm block hover:bg-white"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-sm block hover:bg-white"
           aria-label="Next slide"
         >
-          <ChevronRight className="w-4 h-4 text-gray-600" />
+          <ChevronRight className="w-5 h-5 text-gray-600" />
         </button>
 
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={currentIndex}
             initial={{ opacity: 0, x: direction * 50, scale: 0.95 }}
@@ -155,8 +170,8 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
               perspective: '1000px'
             }}
           >
-            {news.length > 0 ? (
-              <NewsPreviewCard news={news[currentIndex]} variant="cst" />
+            {recentNews.length > 0 ? (
+              <NewsPreviewCard news={recentNews[currentIndex]} variant="cst" />
             ) : (
               <div className="text-center py-6">
                 <p className="text-gray-500">No news available for CST</p>

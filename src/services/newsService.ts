@@ -1,5 +1,6 @@
-import { supabase } from '../lib/supabase';
-import type { NewsItem, NewsResponse } from '../types/news';
+import { supabase } from '@/lib/supabase';
+import type { NewsItem, NewsResponse } from '@/types/news';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 interface SupabaseNewsItem {
   id: string;
@@ -38,35 +39,63 @@ function mapSupabaseToNewsItem(item: unknown): NewsItem {
   };
 }
 
+// Keep track of in-flight requests
+let currentFetch: Promise<NewsResponse> | null = null;
+
 export async function getNews(): Promise<NewsResponse> {
   try {
-    console.log('Fetching news from Supabase...');
-    const { data, error, count } = await supabase
-      .from('news')
-      .select(`
-        *,
-        campus:campus_id (
-          id,
-          name,
-          location,
-          created_at
-        )
-      `)
-      .order('published_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching news:', error);
-      return { data: [], error, count: 0 };
+    // If there's already a request in flight, return its result
+    if (currentFetch) {
+      return currentFetch;
     }
 
-    console.log('Raw news data:', data);
-    const newsItems: NewsItem[] = (data as unknown[]).map(mapSupabaseToNewsItem);
-    console.log('Mapped news items:', newsItems);
+    console.log('Fetching news from Supabase...');
+    console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
 
-    return { data: newsItems, error: null, count: count || 0 };
+    // Create new request
+    currentFetch = (async () => {
+      try {
+        // Test connection first
+        const { data: testData, error: testError } = await supabase
+          .from('news')
+          .select('id')
+          .limit(1);
+
+        if (testError) {
+          console.error('Supabase connection test failed:', testError);
+          return { data: [], error: testError, count: 0 };
+        }
+
+        console.log('Supabase connection successful, fetching full news data...');
+
+        // Fetch full news data
+        const { data, error, count } = await supabase
+          .from('news')
+          .select(`
+            *,
+            campus:campus_id (
+              id,
+              name
+            )
+          `, { count: 'exact' })
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching news:', error);
+          return { data: [], error, count: 0 };
+        }
+
+        return { data: data as NewsItem[], error: null, count: count || 0 };
+      } finally {
+        // Clear the current fetch after completion
+        currentFetch = null;
+      }
+    })();
+
+    return currentFetch;
   } catch (error) {
-    console.error('Unexpected error fetching news:', error);
-    return { data: [], error: error as Error, count: 0 };
+    console.error('Unexpected error in getNews:', error);
+    return { data: [], error: error as PostgrestError, count: 0 };
   }
 }
 
@@ -78,24 +107,20 @@ export async function getNewsByCampus(campusId: string): Promise<NewsResponse> {
         *,
         campus:campus_id (
           id,
-          name,
-          location,
-          created_at
+          name
         )
-      `)
+      `, { count: 'exact' })
       .eq('campus_id', campusId)
-      .order('published_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching news by campus:', error);
       return { data: [], error, count: 0 };
     }
 
-    const newsItems: NewsItem[] = (data as unknown[]).map(mapSupabaseToNewsItem);
-
-    return { data: newsItems, error: null, count: count || 0 };
+    return { data: data as NewsItem[], error: null, count: count || 0 };
   } catch (error) {
-    console.error('Unexpected error fetching news by campus:', error);
-    return { data: [], error: error as Error, count: 0 };
+    console.error('Unexpected error in getNewsByCampus:', error);
+    return { data: [], error: error as PostgrestError, count: 0 };
   }
 } 

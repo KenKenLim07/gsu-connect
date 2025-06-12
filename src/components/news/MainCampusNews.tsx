@@ -10,33 +10,94 @@ interface MainCampusNewsProps {
   error: string | null;
 }
 
-export default function MainCampusNews({ news, loading, error }: MainCampusNewsProps) {
+interface ImageDimensions {
+  [key: string]: {
+    width: number;
+    height: number;
+    isValid: boolean;
+    isLoading: boolean;
+  };
+}
+
+export default function MainCampusNews({ news, loading: parentLoading, error }: MainCampusNewsProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [imageDimensions, setImageDimensions] = useState<ImageDimensions>({});
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const minSwipeDistance = 50;
+
+  // Load and check image dimensions
+  useEffect(() => {
+    const loadImages = async () => {
+      if (!news.length) return;
+
+      // Initialize all images as loading
+      const initialDimensions: ImageDimensions = {};
+      news.forEach(item => {
+        if (item.image_url) {
+          initialDimensions[item.id] = {
+            width: 0,
+            height: 0,
+            isValid: false,
+            isLoading: true
+          };
+        }
+      });
+      setImageDimensions(initialDimensions);
+
+      // Load each image independently
+      for (const item of news) {
+        if (!item.image_url) continue;
+        
+        try {
+          const img = new Image();
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = item.image_url!;
+          });
+          
+          const aspectRatio = img.width / img.height;
+          setImageDimensions(prev => ({
+            ...prev,
+            [item.id]: {
+              width: img.width,
+              height: img.height,
+              isValid: aspectRatio >= 1 && aspectRatio <= 16/9,
+              isLoading: false
+            }
+          }));
+        } catch (error) {
+          console.warn(`Failed to load image for news item ${item.id}:`, error);
+          setImageDimensions(prev => ({
+            ...prev,
+            [item.id]: {
+              width: 0,
+              height: 0,
+              isValid: false,
+              isLoading: false
+            }
+          }));
+        }
+      }
+    };
+
+    loadImages();
+  }, [news]);
 
   // Filter and sort news items
   const filteredNews = useMemo(() => {
     return news
       .filter(item => {
-        // Check if image exists and has reasonable dimensions
-        if (!item.image_url) return false;
-        
-        // Create a temporary image to check dimensions
-        const img = new Image();
-        img.src = item.image_url;
-        
-        // Only include images with aspect ratio between 1:1 and 16:9
-        const aspectRatio = img.width / img.height;
-        return aspectRatio >= 1 && aspectRatio <= 16/9;
+        const dimensions = imageDimensions[item.id];
+        return item.image_url && dimensions?.isValid && !dimensions.isLoading;
       })
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 10); // Limit to 10 latest items
-  }, [news]);
+  }, [news, imageDimensions]);
 
   const resetTimer = useCallback(() => {
     if (timerRef.current) {
@@ -106,7 +167,8 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
     resetTimer();
   };
 
-  if (loading) {
+  // Show loading state while parent is loading
+  if (parentLoading) {
     return (
       <div className="relative min-h-[425px]">
         <div className="w-full h-[330px] md:h-[500px] bg-gray-100 animate-pulse rounded-lg" />
@@ -135,9 +197,36 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
     );
   }
 
+  // Show loading state for the first item while its image is loading
+  const firstItem = news[0];
+  const firstItemDimensions = firstItem ? imageDimensions[firstItem.id] : null;
+  if (!firstItemDimensions || firstItemDimensions.isLoading) {
+    return (
+      <div className="relative min-h-[425px]">
+        <div className="w-full h-[330px] md:h-[500px] bg-gray-100 animate-pulse rounded-lg" />
+        <div className="mt-2 space-y-2 p-1.5">
+          <div className="h-4 bg-gray-100 animate-pulse rounded w-3/4 mx-auto" />
+          <div className="flex items-center justify-center gap-2">
+            <div className="h-4 bg-gray-100 animate-pulse rounded w-20" />
+            <div className="h-4 bg-gray-100 animate-pulse rounded w-24" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Only show "No news available" if we've finished checking images and found none valid
+  if (filteredNews.length === 0) {
+    return (
+      <div className="text-center py-6">
+        <p className="text-gray-500">No news available for Main Campus</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full">
-      <div className="text-left mb-0.5">
+      <div className="text-center mb-0.5">
         <h2 className="text-sm font-semibold text-gray-900">Main Campus News</h2>
         <p className="text-xs text-gray-500">Latest updates from the Main Campus</p>
       </div>
@@ -201,15 +290,9 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
                 perspective: '1000px'
               }}
             >
-              {filteredNews.length > 0 ? (
-                <NewsPreviewCard 
-                  news={filteredNews[currentIndex]} 
-                />
-              ) : (
-                <div className="text-center py-6">
-                  <p className="text-gray-500">No news available for Main Campus</p>
-                </div>
-              )}
+              <NewsPreviewCard 
+                news={filteredNews[currentIndex]} 
+              />
             </motion.div>
           </AnimatePresence>
 

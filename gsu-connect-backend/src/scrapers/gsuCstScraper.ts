@@ -207,71 +207,36 @@ export async function scrapeGsuCstNews(): Promise<NewsItem[]> {
         // Extract image URL
         let image_url = '';
         
-        // Debug HTML structure
-        console.log('Article HTML structure:', $$('main').html()?.slice(0, 1000));
-        
-        // Try multiple selectors for featured image
-        const selectors = [
-          '.wp-block-post-featured-image img',
-          'figure.wp-block-post-featured-image img',
-          '.wp-block-image img',
-          '.entry-content img',
-          'img.wp-post-image',
-          'img[src*="uploads"]',
-          'img[src*="wp-content"]',
-          'img[src*="RANE"]',  // Added specific selector for RANE images
-          'img[src*="2025"]',  // Added selector for 2025 images
-          'img[src*="LEA"]',   // Added selector for LEA images
-          'img[src*="admissions"]', // Added selector for admissions-related images
-          'img'  // Added fallback to any image
-        ];
-
-        // Log all images found in the article
-        console.log('All images in article:');
-        $$('img').each((i, img) => {
-          const src = $$(img).attr('src');
-          const alt = $$(img).attr('alt');
-          const classes = $$(img).attr('class');
-          console.log(`Image ${i + 1}:`, { src, alt, classes });
-        });
-
-        // First try to find an image that matches the article title
-        const titleWords = title.toLowerCase().split(' ');
-        for (const img of $$('img').get()) {
-          const src = $$(img).attr('src') || '';
-          const alt = $$(img).attr('alt') || '';
-          const classes = $$(img).attr('class') || '';
-          
-          // Check if any word from the title appears in the image attributes
-          const matchesTitle = titleWords.some(word => 
-            word.length > 3 && (
-              src.toLowerCase().includes(word) ||
-              alt.toLowerCase().includes(word) ||
-              classes.toLowerCase().includes(word)
-            )
-          );
-          
-          if (matchesTitle) {
+        // Try to find the WordPress post image first
+        const wpPostImage = $$('img.wp-post-image').first();
+        if (wpPostImage.length) {
+          const src = wpPostImage.attr('src');
+          if (src) {
             image_url = src.startsWith('/') ? `https://cst.gsu.edu.ph${src}` : src;
-            console.log('Found image matching article title:', image_url);
-            break;
+            console.log('Found WordPress post image:', image_url);
           }
         }
 
-        // If no title-matching image found, try the selectors
+        // If no wp-post-image, try to find the featured image
         if (!image_url) {
-          for (const selector of selectors) {
-            const img = $$(selector).first();
-            if (img.length) {
-              const src = img.attr('src') || '';
-              console.log(`Found image with selector ${selector}:`, src);
-              
-              // Validate the image URL
-              if (src && (src.startsWith('http') || src.startsWith('/'))) {
-                image_url = src.startsWith('/') ? `https://cst.gsu.edu.ph${src}` : src;
-                console.log('Validated image URL:', image_url);
-                break;
-              }
+          const featuredImage = $$('.wp-block-post-featured-image img, figure.wp-block-post-featured-image img').first();
+          if (featuredImage.length) {
+            const src = featuredImage.attr('src');
+            if (src) {
+              image_url = src.startsWith('/') ? `https://cst.gsu.edu.ph${src}` : src;
+              console.log('Found featured image:', image_url);
+            }
+          }
+        }
+
+        // If still no image, try to find any image in the article content
+        if (!image_url) {
+          const contentImage = $$('.entry-content img, .wp-block-image img').first();
+          if (contentImage.length) {
+            const src = contentImage.attr('src');
+            if (src) {
+              image_url = src.startsWith('/') ? `https://cst.gsu.edu.ph${src}` : src;
+              console.log('Found content image:', image_url);
             }
           }
         }
@@ -280,12 +245,18 @@ export async function scrapeGsuCstNews(): Promise<NewsItem[]> {
         if (!image_url) {
           const anyImage = $$('img').first();
           if (anyImage.length) {
-            const src = anyImage.attr('src') || '';
+            const src = anyImage.attr('src');
             if (src) {
               image_url = src.startsWith('/') ? `https://cst.gsu.edu.ph${src}` : src;
               console.log('Found fallback image:', image_url);
             }
           }
+        }
+
+        // If no image found at all, use a default image
+        if (!image_url) {
+          image_url = 'https://placehold.co/800x500/9ca3af/ffffff?text=GSU+CST+News';
+          console.log('Using default image');
         }
         
         // Try multiple methods to extract the date

@@ -1,5 +1,4 @@
 import type { NewsItem } from "../../types/news";
-import { useState } from "react";
 
 interface NewsPreviewCardProps {
   news: NewsItem;
@@ -36,7 +35,7 @@ export default function NewsPreviewCard({
         }
       }}
     >
-      <div className={`relative w-full ${variant === 'main' ? 'aspect-[16/9]' : 'h-[330px] md:h-[500px]'} overflow-hidden rounded-lg bg-gray-50`}>
+      <div className={`relative w-full ${variant === 'main' ? 'aspect-[16/9]' : 'h-[330px] md:h-[500px]'}`}>
         <img
           src={news.image_url || defaultImage}
           alt={news.title}
@@ -49,8 +48,8 @@ export default function NewsPreviewCard({
       </div>
 
       <div className="mt-1 h-[60px]">
-        <h3 className="text-sm font-medium text-gray-900 line-clamp-2">{news.title}</h3>
-        <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+        <h3 className="text-sm font-medium text-gray-900 line-clamp-2 text-center">{news.title}</h3>
+        <div className="flex flex-wrap items-center justify-center gap-1.5 text-xs text-gray-500">
           <span className="px-1.5 py-0.5 bg-gray-100 rounded-md whitespace-nowrap">
             {news.source_url ? new URL(news.source_url).hostname.replace('www.', '') : 'GSU'}
           </span>
