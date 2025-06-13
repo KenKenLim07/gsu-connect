@@ -34,7 +34,6 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     const loadImages = async () => {
       if (!news.length) return;
 
-      // Initialize all images as loading
       const initialDimensions: ImageDimensions = {};
       news.forEach(item => {
         if (item.image_url) {
@@ -48,7 +47,6 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
       });
       setImageDimensions(initialDimensions);
 
-      // Load each image independently
       for (const item of news) {
         if (!item.image_url) continue;
         
@@ -88,7 +86,6 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     loadImages();
   }, [news]);
 
-  // Filter and sort news items
   const filteredNews = useMemo(() => {
     return news
       .filter(item => {
@@ -96,7 +93,7 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
         return item.image_url && dimensions?.isValid && !dimensions.isLoading;
       })
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 10); // Limit to 10 latest items
+      .slice(0, 10);
   }, [news, imageDimensions]);
 
   const resetTimer = useCallback(() => {
@@ -167,7 +164,6 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     resetTimer();
   };
 
-  // Show loading state while parent is loading
   if (parentLoading) {
     return (
       <div className="relative min-h-[425px]">
@@ -197,7 +193,6 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     );
   }
 
-  // Show loading state for the first item while its image is loading
   const firstItem = news[0];
   const firstItemDimensions = firstItem ? imageDimensions[firstItem.id] : null;
   if (!firstItemDimensions || firstItemDimensions.isLoading) {
@@ -215,7 +210,6 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     );
   }
 
-  // Only show "No news available" if we've finished checking images and found none valid
   if (filteredNews.length === 0) {
     return (
       <div className="text-center py-6">
@@ -223,6 +217,10 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
       </div>
     );
   }
+
+  const getAdjacentIndex = (offset: number) => {
+    return (currentIndex + offset + filteredNews.length) % filteredNews.length;
+  };
 
   return (
     <div className="w-full">
@@ -252,72 +250,160 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
           <ChevronRight className="w-6 h-6 text-gray-600" />
         </button>
 
-        <div className="relative">
-          <AnimatePresence mode="wait">
+        <div className="relative flex items-center justify-center gap-0 px-4 md:px-12 overflow-visible">
+          <AnimatePresence mode="popLayout" initial={false}>
+            {/* Previous Image */}
             <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0, x: direction * 50, scale: 0.95 }}
+              key={`prev-${currentIndex}`}
+              initial={{ 
+                x: 100,
+                opacity: 0,
+                scale: 0.8,
+                zIndex: 1
+              }}
               animate={{ 
-                opacity: 1, 
                 x: 0,
-                scale: 1,
+                opacity: 0.5,
+                scale: 0.85,
+                zIndex: 1,
                 transition: {
                   type: "spring",
-                  stiffness: 400,
+                  stiffness: 200,
                   damping: 25,
-                  mass: 0.5,
-                  velocity: 2,
-                  duration: 0.4
+                  mass: 0.8,
+                  velocity: 0.5
                 }
               }}
               exit={{ 
-                opacity: 0, 
-                x: -direction * 50,
-                scale: 0.95,
+                x: -100,
+                opacity: 0,
+                scale: 0.8,
                 transition: {
                   type: "spring",
-                  stiffness: 400,
+                  stiffness: 200,
                   damping: 25,
-                  mass: 0.5,
-                  velocity: 2,
-                  duration: 0.4
+                  mass: 0.8,
+                  velocity: 0.5
                 }
               }}
-              className="w-full relative will-change-transform"
-              style={{
-                transform: 'translateZ(0)',
-                backfaceVisibility: 'hidden',
-                perspective: '1000px'
+              className="w-1/3 md:w-1/4 -mr-8 md:-mr-12"
+            >
+              <NewsPreviewCard 
+                news={filteredNews[getAdjacentIndex(-1)]} 
+                variant="main"
+                showTitle={false}
+              />
+            </motion.div>
+
+            {/* Current Image */}
+            <motion.div
+              key={`current-${currentIndex}`}
+              initial={{ 
+                x: direction * 100,
+                opacity: 0,
+                scale: 0.9,
+                zIndex: 2
               }}
+              animate={{ 
+                x: 0,
+                opacity: 1,
+                scale: 1.1,
+                zIndex: 2,
+                transition: {
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 25,
+                  mass: 0.8,
+                  velocity: 0.5
+                }
+              }}
+              exit={{ 
+                x: -direction * 100,
+                opacity: 0,
+                scale: 0.9,
+                transition: {
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 25,
+                  mass: 0.8,
+                  velocity: 0.5
+                }
+              }}
+              className="w-2/3 md:w-4/5"
             >
               <NewsPreviewCard 
                 news={filteredNews[currentIndex]} 
+                variant="main"
+                showTitle={true}
+              />
+            </motion.div>
+
+            {/* Next Image */}
+            <motion.div
+              key={`next-${currentIndex}`}
+              initial={{ 
+                x: -100,
+                opacity: 0,
+                scale: 0.8,
+                zIndex: 1
+              }}
+              animate={{ 
+                x: 0,
+                opacity: 0.5,
+                scale: 0.85,
+                zIndex: 1,
+                transition: {
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 25,
+                  mass: 0.8,
+                  velocity: 0.5
+                }
+              }}
+              exit={{ 
+                x: 100,
+                opacity: 0,
+                scale: 0.8,
+                transition: {
+                  type: "spring",
+                  stiffness: 200,
+                  damping: 25,
+                  mass: 0.8,
+                  velocity: 0.5
+                }
+              }}
+              className="w-1/3 md:w-1/4 -ml-8 md:-ml-12"
+            >
+              <NewsPreviewCard 
+                news={filteredNews[getAdjacentIndex(1)]} 
+                variant="main"
+                showTitle={false}
               />
             </motion.div>
           </AnimatePresence>
-
-          {/* Dot indicators */}
-          {filteredNews.length > 0 && (
-            <div className="mt-4 text-center">
-              {filteredNews.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    setDirection(index > currentIndex ? 1 : -1);
-                    setCurrentIndex(index);
-                    resetTimer();
-                  }}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 inline-block mx-1 ${
-                    index === currentIndex 
-                      ? "bg-blue-600 scale-125" 
-                      : "bg-gray-300 hover:bg-gray-400"
-                  }`}
-                  aria-label={`Go to slide ${index + 1}`}
-                />
-              ))}
-            </div>
-          )}
         </div>
+
+        {/* Dot indicators */}
+        {filteredNews.length > 0 && (
+          <div className="mt-4 text-center">
+            {filteredNews.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setDirection(index > currentIndex ? 1 : -1);
+                  setCurrentIndex(index);
+                  resetTimer();
+                }}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 inline-block mx-1 ${
+                  index === currentIndex 
+                    ? "bg-blue-600 scale-125" 
+                    : "bg-gray-300 hover:bg-gray-400"
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -69,21 +69,21 @@ export async function getNews(): Promise<NewsResponse> {
         console.log('Supabase connection successful, fetching full news data...');
 
         // Fetch full news data
-        const { data, error, count } = await supabase
-          .from('news')
-          .select(`
-            *,
-            campus:campus_id (
-              id,
+    const { data, error, count } = await supabase
+      .from('news')
+      .select(`
+        *,
+        campus:campus_id (
+          id,
               name
-            )
+        )
           `, { count: 'exact' })
           .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Error fetching news:', error);
-          return { data: [], error, count: 0 };
-        }
+    if (error) {
+      console.error('Error fetching news:', error);
+      return { data: [], error, count: 0 };
+    }
 
         return { 
           data: data.map(mapSupabaseToNewsItem), 

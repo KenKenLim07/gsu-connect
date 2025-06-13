@@ -52,8 +52,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-4">
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">What's News</h1>
-          </div>
-          
+      </div>
+
           <div className="space-y-4">
             <MainCampusNews 
               news={mainCampusNews}

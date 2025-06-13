@@ -20,8 +20,39 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
   const [direction, setDirection] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [preloadedImages, setPreloadedImages] = useState<Set<string>>(new Set());
 
   const minSwipeDistance = 50;
+
+  // Preload images for current and next items
+  useEffect(() => {
+    const preloadImage = (url: string) => {
+      if (!url || preloadedImages.has(url)) return;
+      
+      const img = new Image();
+      img.src = url;
+      img.onload = () => {
+        setPreloadedImages(prev => new Set([...prev, url]));
+      };
+    };
+
+    // Preload current image
+    if (recentNews[currentIndex]?.image_url) {
+      preloadImage(recentNews[currentIndex].image_url);
+    }
+
+    // Preload next image
+    const nextIndex = (currentIndex + 1) % recentNews.length;
+    if (recentNews[nextIndex]?.image_url) {
+      preloadImage(recentNews[nextIndex].image_url);
+    }
+
+    // Preload previous image
+    const prevIndex = (currentIndex - 1 + recentNews.length) % recentNews.length;
+    if (recentNews[prevIndex]?.image_url) {
+      preloadImage(recentNews[prevIndex].image_url);
+    }
+  }, [currentIndex, recentNews, preloadedImages]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
@@ -171,7 +202,11 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
             }}
           >
             {recentNews.length > 0 ? (
-              <NewsPreviewCard news={recentNews[currentIndex]} variant="cst" />
+              <NewsPreviewCard 
+                news={recentNews[currentIndex]} 
+                variant="cst"
+                isImageLoaded={preloadedImages.has(recentNews[currentIndex].image_url)}
+              />
             ) : (
               <div className="text-center py-6">
                 <p className="text-gray-500">No news available for CST</p>
