@@ -56,7 +56,7 @@ export async function getNews(): Promise<NewsResponse> {
     currentFetch = (async () => {
       try {
         // Test connection first
-        const { data: testData, error: testError } = await supabase
+        const { error: testError } = await supabase
           .from('news')
           .select('id')
           .limit(1);
@@ -85,7 +85,11 @@ export async function getNews(): Promise<NewsResponse> {
           return { data: [], error, count: 0 };
         }
 
-        return { data: data as NewsItem[], error: null, count: count || 0 };
+        return { 
+          data: data.map(mapSupabaseToNewsItem), 
+          error: null, 
+          count: count || 0 
+        };
       } finally {
         // Clear the current fetch after completion
         currentFetch = null;
@@ -118,7 +122,11 @@ export async function getNewsByCampus(campusId: string): Promise<NewsResponse> {
       return { data: [], error, count: 0 };
     }
 
-    return { data: data as NewsItem[], error: null, count: count || 0 };
+    return { 
+      data: data.map(mapSupabaseToNewsItem), 
+      error: null, 
+      count: count || 0 
+    };
   } catch (error) {
     console.error('Unexpected error in getNewsByCampus:', error);
     return { data: [], error: error as PostgrestError, count: 0 };

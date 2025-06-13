@@ -125,19 +125,35 @@ const Navbar = () => {
             className="md:hidden bg-white border-b"
           >
             <div className="flex flex-col py-2 px-4 gap-2">
-              <Link to="/" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2">
+              <Link 
+                to="/" 
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2"
+              >
                 <HomeIcon className="w-5 h-5" />
                 <span>Home</span>
               </Link>
-              <Link to="/news" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2">
+              <Link 
+                to="/news" 
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2"
+              >
                 <NewspaperIcon className="w-5 h-5" />
                 <span>News</span>
               </Link>
-              <Link to="/about" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2">
+              <Link 
+                to="/about" 
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2"
+              >
                 <InformationCircleIcon className="w-5 h-5" />
                 <span>About</span>
               </Link>
-              <Link to="/login" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2">
+              <Link 
+                to="/login" 
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2"
+              >
                 <ArrowRightOnRectangleIcon className="w-5 h-5" />
                 <span>Login</span>
               </Link>
