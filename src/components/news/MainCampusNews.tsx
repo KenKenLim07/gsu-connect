@@ -125,6 +125,12 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
 
   const onTouchMove = (e: React.TouchEvent) => {
     const currentTouch = e.targetTouches[0].clientX;
+    const currentY = e.targetTouches[0].clientY;
+    
+    if (touchStart && Math.abs(currentTouch - touchStart) > Math.abs(currentY - (touchStart ? e.targetTouches[0].clientY : 0))) {
+      e.preventDefault();
+    }
+    
     setTouchEnd(currentTouch);
     
     if (touchStart) {
@@ -135,7 +141,7 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     }
   };
 
-  const onTouchEnd = () => {
+  const onTouchEnd = (e: React.TouchEvent) => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
@@ -224,12 +230,12 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
 
   return (
     <div className="w-full">
-      <div className="text-center mb-0.5">
+      <div className="text-center mb-1 sm:mb-3 md:mb-9">
         <h2 className="text-sm font-semibold text-gray-900">Main Campus News</h2>
         <p className="text-xs text-gray-500">Latest updates from the Main Campus</p>
       </div>
       <div 
-        className="relative group"
+        className="relative group touch-pan-y"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -264,8 +270,9 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
               animate={{ 
                 x: 0,
                 opacity: 0.5,
-                scale: 0.85,
+                scale: 1,
                 zIndex: 1,
+                y: 40,
                 transition: {
                   type: "spring",
                   stiffness: 200,
@@ -286,7 +293,7 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
                   velocity: 0.5
                 }
               }}
-              className="w-1/3 md:w-1/4 -mr-8 md:-mr-12"
+              className="w-1/4 md:w-1/5 -mr-4 md:-mr-6"
             >
               <NewsPreviewCard 
                 news={filteredNews[getAdjacentIndex(-1)]} 
@@ -307,7 +314,7 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
               animate={{ 
                 x: 0,
                 opacity: 1,
-                scale: 1.1,
+                scale: 1.4,
                 zIndex: 2,
                 transition: {
                   type: "spring",
@@ -329,7 +336,7 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
                   velocity: 0.5
                 }
               }}
-              className="w-2/3 md:w-4/5"
+              className="w-2/3 md:w-3/4"
             >
               <NewsPreviewCard 
                 news={filteredNews[currentIndex]} 
@@ -350,8 +357,9 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
               animate={{ 
                 x: 0,
                 opacity: 0.5,
-                scale: 0.85,
+                scale: 1,
                 zIndex: 1,
+                y: 40,
                 transition: {
                   type: "spring",
                   stiffness: 200,
@@ -372,7 +380,7 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
                   velocity: 0.5
                 }
               }}
-              className="w-1/3 md:w-1/4 -ml-8 md:-ml-12"
+              className="w-1/4 md:w-1/5 -ml-4 md:-ml-6"
             >
               <NewsPreviewCard 
                 news={filteredNews[getAdjacentIndex(1)]} 

@@ -3,7 +3,8 @@ import { Skeleton } from "../ui/skeleton";
 
 export default function NewsCardSkeleton() {
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden relative">
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_2s_infinite]" />
       <CardHeader className="space-y-2 p-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <Skeleton className="h-6 w-3/4" />

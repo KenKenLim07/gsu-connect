@@ -4,7 +4,7 @@ import type { NewsItem } from "@/types/news";
 
 interface NewsPreviewCardProps {
   news: NewsItem;
-  variant: "cst" | "main" | "other";
+  variant: "main" | "other";
   isImageLoaded?: boolean;
   showTitle?: boolean;
 }
@@ -18,14 +18,12 @@ export default function NewsPreviewCard({ news, variant, isImageLoaded = false, 
 
   const getImageHeight = () => {
     switch (variant) {
-      case "cst":
-        return "h-[330px] md:h-[500px]";
       case "main":
-        return "h-[200px] md:h-[300px]";
+        return "h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px]";
       case "other":
-        return "h-[180px] md:h-[250px]";
+        return "h-[160px] sm:h-[200px] md:h-[240px] lg:h-[280px]";
       default:
-        return "h-[200px]";
+        return "h-[180px]";
     }
   };
 
@@ -37,10 +35,18 @@ export default function NewsPreviewCard({ news, variant, isImageLoaded = false, 
     });
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    if (news.source_url) {
+      e.preventDefault();
+      window.open(news.source_url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <Link 
-      to={`/news/${news.id}`}
-      className="block"
+      to={news.source_url ? '#' : `/news/${news.id}`}
+      onClick={handleClick}
+      className="block relative"
     >
       <div className="relative">
         {imageLoading && (
@@ -56,18 +62,18 @@ export default function NewsPreviewCard({ news, variant, isImageLoaded = false, 
         />
       </div>
       {showTitle ? (
-        <div className="mt-1 space-y-1 p-1 text-center">
-          <h3 className="text-xs font-medium text-gray-900 line-clamp-2">
+        <div className="absolute bottom-0 left-0 right-0 bg-white/90 backdrop-blur-sm mt-1 space-y-0.5 p-1 text-center">
+          <h3 className="text-[9px] sm:text-[10px] font-medium text-gray-900 line-clamp-2 px-1 max-w-full overflow-hidden">
             {news.title}
           </h3>
-          <div className="flex items-center justify-center gap-1.5 text-[10px] text-gray-500">
-            <span>{news.source_url ? new URL(news.source_url).hostname.replace('www.', '') : 'GSU'}</span>
+          <div className="flex items-center justify-center gap-1 text-[7px] sm:text-[8px] text-gray-500 px-1">
+            <span className="truncate max-w-[100px]">{news.source_url ? new URL(news.source_url).hostname.replace('www.', '') : 'GSU'}</span>
             <span>•</span>
-            <span>{formatDate(news.published_at)}</span>
+            <span className="truncate max-w-[80px]">{formatDate(news.published_at)}</span>
           </div>
         </div>
       ) : (
-        <div className="h-[100px]" />
+        <div className="h-[70px] sm:h-[80px]" />
       )}
     </Link>
   );
