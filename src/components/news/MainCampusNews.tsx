@@ -421,20 +421,20 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
         {/* Dot indicators */}
         {filteredNews.length > 0 && (
           <div className="mt-4 text-center">
-            {filteredNews.map((_, index) => (
+            {filteredNews.map((_, i) => (
               <button
-                key={index}
+                key={i}
                 onClick={() => {
-                  setDirection(index > currentIndex ? 1 : -1);
-                  setCurrentIndex(index);
+                  setDirection(i > currentIndex ? 1 : -1);
+                  setCurrentIndex(i);
                   resetTimer();
                 }}
                 className={`w-1.5 h-1.5 rounded-full transition-all duration-300 inline-block mx-1 ${
-                  index === currentIndex 
+                  i === currentIndex 
                     ? "bg-blue-600 scale-125" 
                     : "bg-gray-300 hover:bg-gray-400"
                 }`}
-                aria-label={`Go to slide ${index + 1}`}
+                aria-label={`Go to slide ${i + 1}`}
               />
             ))}
           </div>

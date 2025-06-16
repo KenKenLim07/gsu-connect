@@ -145,7 +145,7 @@ const Navbar = () => {
                 }
               }}
             >
-              {menuItems.map((item, index) => (
+              {menuItems.map((item) => (
                 <motion.div
                   key={item.to}
                   variants={{
