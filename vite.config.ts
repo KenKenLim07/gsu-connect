@@ -5,7 +5,7 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/gsu-connect/',
+  base: '/gsu-connect',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -19,12 +19,8 @@ export default defineConfig({
           'vendor': ['react', 'react-dom', 'react-router-dom'],
           'utils': ['class-variance-authority', 'clsx', 'tailwind-merge'],
         },
-        assetFileNames: 'assets/[name].[hash][extname]',
-        chunkFileNames: 'assets/[name].[hash].js',
-        entryFileNames: 'assets/[name].[hash].js',
       },
     },
-    sourcemap: true,
   },
   server: {
     port: 5173,
