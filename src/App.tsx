@@ -25,44 +25,18 @@ function App() {
 
   return (
     <AuthProvider>
-      <Routes>
-        <Route element={<MainLayout />}>
-          <Route
-            path="/"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <Home />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/news"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <NewsPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/about"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <AboutPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <Login />
-              </Suspense>
-            }
-          />
-          {/* Catch all route - redirect to home */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/news" element={<NewsPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/login" element={<Login />} />
+            {/* Catch all route - redirect to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </Suspense>
       <Toaster />
     </AuthProvider>
   );

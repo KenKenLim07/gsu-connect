@@ -24,9 +24,16 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const menuItems = [
+    { to: "/", icon: HomeIcon, label: "Home" },
+    { to: "/news", icon: NewspaperIcon, label: "News" },
+    { to: "/about", icon: InformationCircleIcon, label: "About" },
+    { to: "/login", icon: ArrowRightOnRectangleIcon, label: "Login" }
+  ];
+
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
-      isScrolled ? 'bg-white/80 backdrop-blur-sm shadow-sm' : 'bg-transparent'
+      isScrolled || open ? 'bg-white shadow-sm' : 'bg-transparent'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-14">
@@ -38,22 +45,16 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
-              <HomeIcon className="w-5 h-5" />
-              <span>Home</span>
-            </Link>
-            <Link to="/news" className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
-              <NewspaperIcon className="w-5 h-5" />
-              <span>News</span>
-            </Link>
-            <Link to="/about" className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
-              <InformationCircleIcon className="w-5 h-5" />
-              <span>About</span>
-            </Link>
-            <Link to="/login" className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900">
-              <ArrowRightOnRectangleIcon className="w-5 h-5" />
-              <span>Login</span>
-            </Link>
+            {menuItems.map((item) => (
+              <Link 
+                key={item.to} 
+                to={item.to} 
+                className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900"
+              >
+                <item.icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </Link>
+            ))}
           </div>
 
           {/* Mobile Menu Button */}
@@ -69,7 +70,7 @@ const Navbar = () => {
                 animate={open ? "open" : "closed"}
               >
                 <motion.span
-                  className="w-6 h-0.5 bg-current block origin-center absolute"
+                  className="w-6 h-[3px] bg-current block origin-center absolute"
                   variants={{
                     closed: { rotate: 0, y: -6 },
                     open: { 
@@ -83,7 +84,7 @@ const Navbar = () => {
                   }}
                 />
                 <motion.span
-                  className="w-6 h-0.5 bg-current block absolute"
+                  className="w-6 h-[3px] bg-current block absolute"
                   variants={{
                     closed: { opacity: 1, y: 0 },
                     open: { 
@@ -96,7 +97,7 @@ const Navbar = () => {
                   }}
                 />
                 <motion.span
-                  className="w-6 h-0.5 bg-current block origin-center absolute"
+                  className="w-6 h-[3px] bg-current block origin-center absolute"
                   variants={{
                     closed: { rotate: 0, y: 6 },
                     open: { 
@@ -122,42 +123,61 @@ const Navbar = () => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="md:hidden bg-white border-b"
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="md:hidden bg-white border-b overflow-hidden"
           >
-            <div className="flex flex-col py-2 px-4 gap-2">
-              <Link 
-                to="/" 
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2"
-              >
-                <HomeIcon className="w-5 h-5" />
-                <span>Home</span>
-              </Link>
-              <Link 
-                to="/news" 
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2"
-              >
-                <NewspaperIcon className="w-5 h-5" />
-                <span>News</span>
-              </Link>
-              <Link 
-                to="/about" 
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2"
-              >
-                <InformationCircleIcon className="w-5 h-5" />
-                <span>About</span>
-              </Link>
-              <Link 
-                to="/login" 
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2"
-              >
-                <ArrowRightOnRectangleIcon className="w-5 h-5" />
-                <span>Login</span>
-              </Link>
-            </div>
+            <motion.div 
+              className="flex flex-col py-2 px-4 gap-2"
+              initial="closed"
+              animate="open"
+              variants={{
+                open: {
+                  transition: {
+                    staggerChildren: 0.1,
+                    delayChildren: 0.1
+                  }
+                },
+                closed: {
+                  transition: {
+                    staggerChildren: 0.05,
+                    staggerDirection: -1
+                  }
+                }
+              }}
+            >
+              {menuItems.map((item, index) => (
+                <motion.div
+                  key={item.to}
+                  variants={{
+                    open: {
+                      x: 0,
+                      opacity: 1,
+                      transition: {
+                        x: { stiffness: 1000, velocity: -100 },
+                        opacity: { duration: 0.2 }
+                      }
+                    },
+                    closed: {
+                      x: -50,
+                      opacity: 0,
+                      transition: {
+                        x: { stiffness: 1000 },
+                        opacity: { duration: 0.1 }
+                      }
+                    }
+                  }}
+                >
+                  <Link 
+                    to={item.to} 
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2"
+                  >
+                    <item.icon className="w-5 h-5" />
+                    <span>{item.label}</span>
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

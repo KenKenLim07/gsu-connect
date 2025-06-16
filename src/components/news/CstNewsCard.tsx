@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
 import type { NewsItem } from "../../types/news";
 
 interface CstNewsCardProps {
@@ -113,11 +112,17 @@ export default function CstNewsCard({ news, isImageLoaded = false, index, onImag
     });
   };
 
+  const handleClick = () => {
+    if (news.source_url) {
+      window.open(news.source_url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
-    <Link 
-      to={`/news/${news.id}`}
-      className="block relative h-full touch-pan-y"
-      style={{ touchAction: 'pan-y' }}
+    <div 
+      onClick={handleClick}
+      className="block relative h-full cursor-pointer hover:opacity-90 transition-opacity"
+      style={{ touchAction: 'pan-y pinch-zoom' }}
     >
       <div ref={containerRef} className="relative h-full overflow-hidden rounded-lg">
         {imageLoading && (
@@ -148,6 +153,6 @@ export default function CstNewsCard({ news, isImageLoaded = false, index, onImag
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 } 

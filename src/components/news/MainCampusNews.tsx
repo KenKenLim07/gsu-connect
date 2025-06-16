@@ -93,7 +93,7 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
         return item.image_url && dimensions?.isValid && !dimensions.isLoading;
       })
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 10);
+      .slice(0, 5); // Limit to 5 items
   }, [news, imageDimensions]);
 
   const resetTimer = useCallback(() => {
@@ -141,7 +141,7 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     }
   };
 
-  const onTouchEnd = (e: React.TouchEvent) => {
+  const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
@@ -173,13 +173,39 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
   if (parentLoading) {
     return (
       <div className="relative min-h-[425px]">
-        <div className="w-full h-[330px] md:h-[500px] bg-gray-100 animate-pulse rounded-lg" />
-        <div className="mt-2 space-y-2 p-1.5">
-          <div className="h-4 bg-gray-100 animate-pulse rounded w-3/4 mx-auto" />
-          <div className="flex items-center justify-center gap-2">
-            <div className="h-4 bg-gray-100 animate-pulse rounded w-20" />
-            <div className="h-4 bg-gray-100 animate-pulse rounded w-24" />
+        <div className="relative flex items-center justify-center gap-0 px-4 md:px-12 overflow-visible">
+          {/* Previous Skeleton */}
+          <div className="w-1/4 md:w-1/5 -mr-4 md:-mr-6">
+            <div className="w-full h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px] bg-gray-100 animate-pulse rounded-lg" />
           </div>
+
+          {/* Current Skeleton */}
+          <div className="w-2/3 md:w-3/4">
+            <div className="w-full h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px] bg-gray-100 animate-pulse rounded-lg" />
+            <div className="mt-2 space-y-1.5 p-1.5">
+              <div className="h-3 bg-gray-100 animate-pulse rounded w-3/4 mx-auto" />
+              <div className="flex items-center justify-center gap-1.5">
+                <div className="h-2.5 bg-gray-100 animate-pulse rounded w-16" />
+                <div className="h-2.5 bg-gray-100 animate-pulse rounded w-2" />
+                <div className="h-2.5 bg-gray-100 animate-pulse rounded w-20" />
+              </div>
+            </div>
+          </div>
+
+          {/* Next Skeleton */}
+          <div className="w-1/4 md:w-1/5 -ml-4 md:-ml-6">
+            <div className="w-full h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px] bg-gray-100 animate-pulse rounded-lg" />
+          </div>
+        </div>
+
+        {/* Skeleton Dots */}
+        <div className="mt-4 text-center">
+          {[1, 2, 3, 4, 5].map((_, index) => (
+            <div
+              key={index}
+              className="w-1.5 h-1.5 rounded-full bg-gray-200 inline-block mx-1"
+            />
+          ))}
         </div>
       </div>
     );
@@ -235,10 +261,11 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
         <p className="text-xs text-gray-500">Latest updates from the Main Campus</p>
       </div>
       <div 
-        className="relative group touch-pan-y"
+        className="relative group"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
+        style={{ touchAction: 'pan-y pinch-zoom' }}
       >
         <button
           onClick={handlePrevious}
@@ -269,8 +296,8 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
               }}
               animate={{ 
                 x: 0,
-                opacity: 0.5,
-                scale: 1,
+                opacity: 0.7,
+                scale: 1.5,
                 zIndex: 1,
                 y: 40,
                 transition: {
@@ -356,8 +383,8 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
               }}
               animate={{ 
                 x: 0,
-                opacity: 0.5,
-                scale: 1,
+                opacity: 0.7,
+                scale: 1.5,
                 zIndex: 1,
                 y: 40,
                 transition: {
