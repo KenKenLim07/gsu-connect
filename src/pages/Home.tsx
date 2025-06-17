@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { getNews } from "@/services/newsService";
 import type { NewsItem } from "@/types/news";
 import MainCampusNews from "@/components/news/MainCampusNews";
-import CstNews from "@/components/news/CstNews";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
@@ -23,7 +22,6 @@ export default function Home() {
   });
 
   const mainCampusNews = news.filter(item => item.campus?.name === "Main Campus");
-  const cstNews = news.filter(item => item.campus?.name === "CST");
   const errorMessage = error instanceof Error ? error.message : null;
 
   return (
@@ -54,7 +52,7 @@ export default function Home() {
 
       {/* Content Section */}
       <section className="flex-1 overflow-y-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto space-y-12">
+        <div className="max-w-6xl mx-auto">
           {/* Main Campus Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -71,26 +69,6 @@ export default function Home() {
               </Link>
             </div>
             <MainCampusNews news={mainCampusNews} loading={isLoading} error={errorMessage} />
-          </div>
-
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-
-          {/* CST Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-medium text-gray-700">College of Science and Technology</h2>
-              <Link to="/news?campus=CST">
-                <Card className="hover:bg-gray-50 transition-colors border-gray-300">
-                  <CardContent className="px-2 py-1">
-                    <div className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900">
-                      Show all
-                      <ArrowRight className="w-3 h-3" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
-            <CstNews news={cstNews} loading={isLoading} error={errorMessage} />
           </div>
         </div>
       </section>
