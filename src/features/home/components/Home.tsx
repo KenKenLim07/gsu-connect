@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { getNews } from "@/services/newsService";
 import type { NewsItem } from "@/types/news";
 import MainCampusNews from "@/components/news/MainCampusNews";
-import CstNews from "@/components/news/CstNews";
 
 export default function Home() {
   const { data: news = [], isLoading, error } = useQuery<NewsItem[]>({
@@ -19,7 +18,6 @@ export default function Home() {
   });
 
   const mainCampusNews = news.filter((item: NewsItem) => item.campus?.name === "Main Campus");
-  const cstNews = news.filter((item: NewsItem) => item.campus?.name === "CST");
   const errorMessage = error instanceof Error ? error.message : null;
 
   return (
@@ -38,19 +36,11 @@ export default function Home() {
 
       {/* Content Section */}
       <section className="flex-1 px-4 py-4">
-        <div className="max-w-6xl mx-auto space-y-8">
+        <div className="max-w-6xl mx-auto">
           {/* Main Campus Section */}
           <div className="space-y-4">
             <h2 className="text-base font-medium text-gray-700">Main Campus News</h2>
             <MainCampusNews news={mainCampusNews} loading={isLoading} error={errorMessage} />
-          </div>
-
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-
-          {/* CST Section */}
-          <div className="space-y-4">
-            <h2 className="text-base font-medium text-gray-700">College of Science and Technology</h2>
-            <CstNews news={cstNews} loading={isLoading} error={errorMessage} />
           </div>
         </div>
       </section>
