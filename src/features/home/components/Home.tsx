@@ -1,25 +1,34 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchNews } from "@/services/supabaseService";
+import { getNews } from "@/services/newsService";
+import type { NewsItem } from "@/types/news";
 import MainCampusNews from "@/components/news/MainCampusNews";
 import CstNews from "@/components/news/CstNews";
 import { useMemo } from "react";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
-  const { data: news, isLoading, error } = useQuery({
-    queryKey: ["news"],
-    queryFn: fetchNews,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+  const { data: news = [], isLoading, error } = useQuery<NewsItem[]>({
+    queryKey: ['news'],
+    queryFn: async () => {
+      const { data, error } = await getNews();
+      if (error) throw new Error('Failed to load news');
+      return data;
+    },
   });
 
   const { mainCampusNews, cstNews } = useMemo(() => {
     if (!news) return { mainCampusNews: [], cstNews: [] };
     
     return {
-      mainCampusNews: news.filter(item => item.campus_id === "Main Campus"),
-      cstNews: news.filter(item => item.campus_id === "CST")
+      mainCampusNews: news.filter((item: NewsItem) => item.campus?.name === "Main Campus"),
+      cstNews: news.filter((item: NewsItem) => item.campus?.name === "CST")
     };
   }, [news]);
+
+  const errorMessage = error instanceof Error ? error.message : null;
 
   // Only show loading state on initial load
   const showLoading = isLoading && !news;
@@ -36,7 +45,7 @@ export default function Home() {
             <MainCampusNews
               news={mainCampusNews}
               loading={showLoading}
-              error={error?.message || null}
+              error={errorMessage}
             />
           </section>
 
@@ -48,7 +57,7 @@ export default function Home() {
             <CstNews
               news={cstNews}
               loading={showLoading}
-              error={error?.message || null}
+              error={errorMessage}
             />
           </section>
         </div>

@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { getNews } from "@/services/newsService";
-import type { NewsItem } from "@/types/news";
 import MainCampusNews from "@/components/news/MainCampusNews";
 import CstNews from "@/components/news/CstNews";
 import { motion } from "framer-motion";
