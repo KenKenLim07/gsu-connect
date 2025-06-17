@@ -2,12 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { getNews } from "@/services/newsService";
 import type { NewsItem } from "@/types/news";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+// import { Link } from "react-router-dom";
+// import { ArrowRight } from "lucide-react";
+// import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
-  const { data: news = [], isLoading, error } = useQuery<NewsItem[]>({
+  // const { data: news = [], isLoading, error } = useQuery<NewsItem[]>({
+  useQuery<NewsItem[]>({
     queryKey: ['news'],
     queryFn: async () => {
       const { data, error } = await getNews();
@@ -20,7 +21,7 @@ export default function Home() {
     retry: 1,
   });
 
-  const errorMessage = error instanceof Error ? error.message : null;
+  // const errorMessage = error instanceof Error ? error.message : null;
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
