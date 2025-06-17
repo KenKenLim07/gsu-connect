@@ -7,7 +7,6 @@ import { useQuery } from "@tanstack/react-query";
 
 interface MainCampusNewsProps {
   news: NewsItem[];
-  loading: boolean;
   error: string | null;
 }
 
@@ -58,7 +57,7 @@ const preloadImages = async (news: NewsItem[]): Promise<ImageDimensions> => {
   return dimensions;
 };
 
-export default function MainCampusNews({ news, loading: parentLoading, error }: MainCampusNewsProps) {
+export default function MainCampusNews({ news, error }: MainCampusNewsProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
