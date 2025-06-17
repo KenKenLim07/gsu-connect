@@ -157,7 +157,6 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
 
   const onTouchMove = (e: React.TouchEvent) => {
     const currentTouch = e.targetTouches[0].clientX;
-    const currentY = e.targetTouches[0].clientY;
     
     // Only prevent default if we're actually swiping
     if (touchStart && Math.abs(currentTouch - touchStart) > minSwipeDistance) {
