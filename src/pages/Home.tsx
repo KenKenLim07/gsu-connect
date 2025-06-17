@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getNews } from "@/services/newsService";
 import type { NewsItem } from "@/types/news";
 import MainCampusNews from "@/components/news/MainCampusNews";
@@ -9,31 +9,18 @@ import { ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
-  const [mainCampusNews, setMainCampusNews] = useState<NewsItem[]>([]);
-  const [cstNews, setCstNews] = useState<NewsItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: news = [], isLoading, error } = useQuery({
+    queryKey: ['news'],
+    queryFn: async () => {
+      const { data, error } = await getNews();
+      if (error) throw new Error('Failed to load news');
+      return data;
+    },
+  });
 
-  useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const { data, error } = await getNews();
-        if (error) throw error;
-
-        const mainCampus = data.filter(item => item.campus?.name === "Main Campus");
-        const cst = data.filter(item => item.campus?.name === "CST");
-
-        setMainCampusNews(mainCampus);
-        setCstNews(cst);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch news");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNews();
-  }, []);
+  const mainCampusNews = news.filter(item => item.campus?.name === "Main Campus");
+  const cstNews = news.filter(item => item.campus?.name === "CST");
+  const errorMessage = error instanceof Error ? error.message : null;
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -42,21 +29,21 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-center"
-              >
+          >
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
               What's News
             </h1>
-              <motion.p
+            <motion.p
               className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               Stay informed with the latest updates, events, and announcements from across our campuses
-              </motion.p>
+            </motion.p>
           </motion.div>
         </div>
       </section>
@@ -79,7 +66,7 @@ export default function Home() {
                 </Card>
               </Link>
             </div>
-            <MainCampusNews news={mainCampusNews} loading={loading} error={error} />
+            <MainCampusNews news={mainCampusNews} loading={isLoading} error={errorMessage} />
           </div>
 
           <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
@@ -94,12 +81,12 @@ export default function Home() {
                     <div className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900">
                       Show all
                       <ArrowRight className="w-3 h-3" />
-        </div>
+                    </div>
                   </CardContent>
                 </Card>
               </Link>
-      </div>
-            <CstNews news={cstNews} loading={loading} error={error} />
+            </div>
+            <CstNews news={cstNews} loading={isLoading} error={errorMessage} />
           </div>
         </div>
       </section>

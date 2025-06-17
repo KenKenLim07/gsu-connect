@@ -18,6 +18,7 @@ export default function CstNewsCard({ news, isImageLoaded = false, index, onImag
   const containerRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Detect mobile device
   useEffect(() => {
@@ -80,25 +81,41 @@ export default function CstNewsCard({ news, isImageLoaded = false, index, onImag
     }
   }, [canLoad, loadAttempted, isMobile]);
 
+  // Cleanup retry timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleImageError = () => {
-    console.log(`Image load failed for index ${index}, retry count: ${retryCount}`);
-    if (retryCount < 5) {
+    if (retryCount < 3) { // Reduced retry attempts
       setRetryCount(prev => prev + 1);
       setImageLoading(true);
       
-      // Force reload after a short delay
-      setTimeout(() => {
+      // Clear any existing retry timeout
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+
+      // Force reload with exponential backoff
+      retryTimeoutRef.current = setTimeout(() => {
         if (imageRef.current && news.image_url) {
-          // Add cache-busting parameter for mobile
-          const cacheBuster = isMobile ? `?t=${Date.now()}` : '';
-          imageRef.current.src = `${news.image_url}${cacheBuster}`;
+          const timestamp = Date.now();
+          const separator = news.image_url.includes('?') ? '&' : '?';
+          imageRef.current.src = `${news.image_url}${separator}t=${timestamp}`;
         }
-      }, isMobile ? 100 : 300);
+      }, Math.min(1000 * Math.pow(2, retryCount), 5000)); // Exponential backoff with max 5s
+    } else {
+      // After max retries, show a fallback or error state
+      setImageLoading(false);
+      onImageLoaded(index);
     }
   };
 
   const handleImageLoad = () => {
-    console.log(`Image loaded successfully for index ${index}`);
     setImageLoading(false);
     setLoadAttempted(true);
     onImageLoaded(index);
