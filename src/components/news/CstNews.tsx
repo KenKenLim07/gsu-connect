@@ -111,10 +111,6 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
 
   return (
     <div className="px-4 py-8">
-      <div className="text-center mb-6">
-        <h2 className="text-1xl font-semibold text-gray-900">CST News</h2>
-        <p className="text-xs text-gray-500">Latest updates from the College of Science and Technology</p>
-      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {recentNews.map((item: NewsItem, index: number) => (
           <div key={item.id} className="aspect-[4/3]">

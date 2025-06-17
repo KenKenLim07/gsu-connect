@@ -54,7 +54,7 @@ const AboutContent = () => (
       GSU Connect is a centralized digital platform I built to simplify how students, faculty, and staff at Guimaras State University access the latest official news and announcements from across all campuses.
     </motion.p>
 
-    <motion.p variants={ITEM_VARIANTS} className="text-sm leading-relaxed">
+    <motion.p variants={ITEM_VARIANTS} className="text-xs italic leading-relaxed">
       In many schools, updates are scattered across multiple sources—websites, Facebook pages, or bulletin boards—making it easy to miss important information. GSU Connect solves this by automatically scraping only the newest and most recent news from trusted university sources and displaying it in one organized, easy-to-navigate platform.
     </motion.p>
 

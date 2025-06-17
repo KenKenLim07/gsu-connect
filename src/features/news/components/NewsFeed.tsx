@@ -4,12 +4,26 @@ import NewsCard from "./NewsCard";
 import NewsCardSkeleton from "../../../components/news/NewsCardSkeleton";
 import { getNews } from "../../../services/newsService";
 import type { NewsItem } from "../../../types/news";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "../../../components/ui/card";
 
-export default function NewsFeed() {
+interface NewsFeedProps {
+  initialCampus?: string | null;
+}
+
+export default function NewsFeed({ initialCampus }: NewsFeedProps) {
+  const navigate = useNavigate();
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedSource, setSelectedSource] = useState<string>("All");
+  const [selectedSource, setSelectedSource] = useState<string>(initialCampus || "All");
+
+  useEffect(() => {
+    if (initialCampus) {
+      setSelectedSource(initialCampus);
+    }
+  }, [initialCampus]);
 
   useEffect(() => {
     async function fetchNews() {
@@ -45,7 +59,23 @@ export default function NewsFeed() {
       <div className="sticky top-14 z-40 bg-white w-full">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900">GSU News</h1>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate(-1)}
+                className="hover:opacity-80 transition-opacity"
+                aria-label="Go back"
+              >
+                <Card className="border-gray-300">
+                  <CardContent className="p-2">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Back</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </button>
+              <h1 className="text-2xl font-bold text-gray-900">GSU News</h1>
+            </div>
             <div className="flex items-center gap-4">
               <Select
                 value={selectedSource}

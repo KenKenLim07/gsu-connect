@@ -256,10 +256,6 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
 
   return (
     <div className="w-full">
-      <div className="text-center mb-1 sm:mb-3 md:mb-9">
-        <h2 className="text-sm font-semibold text-gray-900">Main Campus News</h2>
-        <p className="text-xs text-gray-500">Latest updates from the Main Campus</p>
-      </div>
       <div 
         className="relative group"
         onTouchStart={onTouchStart}
