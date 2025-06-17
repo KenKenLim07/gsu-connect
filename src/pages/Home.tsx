@@ -3,7 +3,6 @@ import { getNews } from "@/services/newsService";
 import type { NewsItem } from "@/types/news";
 import MainCampusNews from "@/components/news/MainCampusNews";
 import CstNews from "@/components/news/CstNews";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
