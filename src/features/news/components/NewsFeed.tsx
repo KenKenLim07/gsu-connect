@@ -4,16 +4,12 @@ import NewsCard from "./NewsCard";
 import NewsCardSkeleton from "../../../components/news/NewsCardSkeleton";
 import { getNews } from "../../../services/newsService";
 import type { NewsItem } from "../../../types/news";
-import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent } from "../../../components/ui/card";
 
 interface NewsFeedProps {
   initialCampus?: string | null;
 }
 
 export default function NewsFeed({ initialCampus }: NewsFeedProps) {
-  const navigate = useNavigate();
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,41 +55,27 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
       <div className="sticky top-14 z-40 bg-white w-full">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
           <div className="flex flex-col gap-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="hover:opacity-80 transition-opacity w-fit"
-              aria-label="Go back"
-            >
-              <Card className="border-gray-300">
-                <CardContent className="p-2">
-                  <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                    <ArrowLeft className="w-3.5 h-3.5" />
-                    <span>Back</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </button>
-          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
               <h1 className="text-lg font-medium text-gray-900">GSU News</h1>
-            <div className="flex items-center gap-4">
-              <Select
-                value={selectedSource}
-                onValueChange={(value: string) => setSelectedSource(value)}
-              >
+              <div className="flex items-center gap-4">
+                <Select
+                  value={selectedSource}
+                  onValueChange={(value: string) => setSelectedSource(value)}
+                >
                   <SelectTrigger className="w-[180px] h-8 text-sm">
-                  <SelectValue>
-                    {selectedSource === "All" ? "All Sources" : selectedSource}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All">All Sources</SelectItem>
-                  {sourceNames.map((sourceName) => (
-                    <SelectItem key={sourceName} value={sourceName}>
-                      {sourceName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                    <SelectValue>
+                      {selectedSource === "All" ? "All Sources" : selectedSource}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Sources</SelectItem>
+                    {sourceNames.map((sourceName) => (
+                      <SelectItem key={sourceName} value={sourceName}>
+                        {sourceName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>

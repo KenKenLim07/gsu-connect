@@ -170,7 +170,10 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     resetTimer();
   };
 
-  if (parentLoading) {
+  const firstItem = news[0];
+  const firstItemDimensions = firstItem ? imageDimensions[firstItem.id] : null;
+
+  if (parentLoading || !firstItemDimensions || firstItemDimensions.isLoading) {
     return (
       <div className="relative min-h-[425px]">
         <div className="relative flex items-center justify-center gap-0 px-4 md:px-12 overflow-visible">
@@ -221,23 +224,6 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
         >
           Try Again
         </button>
-      </div>
-    );
-  }
-
-  const firstItem = news[0];
-  const firstItemDimensions = firstItem ? imageDimensions[firstItem.id] : null;
-  if (!firstItemDimensions || firstItemDimensions.isLoading) {
-    return (
-      <div className="relative min-h-[425px]">
-        <div className="w-full h-[330px] md:h-[500px] bg-gray-100 animate-pulse rounded-lg" />
-        <div className="mt-2 space-y-2 p-1.5">
-          <div className="h-4 bg-gray-100 animate-pulse rounded w-3/4 mx-auto" />
-          <div className="flex items-center justify-center gap-2">
-            <div className="h-4 bg-gray-100 animate-pulse rounded w-20" />
-            <div className="h-4 bg-gray-100 animate-pulse rounded w-24" />
-          </div>
-        </div>
       </div>
     );
   }
