@@ -3,7 +3,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import NewsCard from "./NewsCard";
 import NewsCardSkeleton from "../../../components/news/NewsCardSkeleton";
 import { getNews } from "../../../services/newsService";
-import type { NewsItem } from "../../../types/news";
 import { useQuery } from "@tanstack/react-query";
 
 interface NewsFeedProps {
