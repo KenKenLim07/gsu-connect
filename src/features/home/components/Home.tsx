@@ -18,38 +18,38 @@ export default function Home() {
   const cstNews = news.filter((item: NewsItem) => item.campus?.name === "CST");
   const errorMessage = error instanceof Error ? error.message : null;
 
-  // Only show loading state on initial load
-  const showLoading = isLoading && !news;
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="space-y-12">
-          {/* Main Campus News Section */}
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Main Campus News
-            </h2>
-            <MainCampusNews
-              news={mainCampusNews}
-              loading={showLoading}
-              error={errorMessage}
-            />
-          </section>
-
-          {/* CST News Section */}
-          <section>
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              CST News
-            </h2>
-            <CstNews
-              news={cstNews}
-              loading={showLoading}
-              error={errorMessage}
-            />
-          </section>
+    <div className="flex flex-col min-h-[calc(100vh-3.5rem)] bg-white">
+      {/* Hero Section */}
+      <section className="relative py-8 px-4">
+        <div className="max-w-5xl mx-auto">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-2">
+            What's News
+          </h1>
+          <p className="text-gray-600 text-base md:text-lg max-w-2xl leading-relaxed">
+            Stay informed with the latest updates, events, and announcements from across our campuses
+          </p>
         </div>
-      </div>
+      </section>
+
+      {/* Content Section */}
+      <section className="flex-1 px-4 py-4">
+        <div className="max-w-6xl mx-auto space-y-8">
+          {/* Main Campus Section */}
+          <div className="space-y-4">
+            <h2 className="text-base font-medium text-gray-700">Main Campus News</h2>
+            <MainCampusNews news={mainCampusNews} loading={isLoading} error={errorMessage} />
+          </div>
+
+          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+          {/* CST Section */}
+          <div className="space-y-4">
+            <h2 className="text-base font-medium text-gray-700">College of Science and Technology</h2>
+            <CstNews news={cstNews} loading={isLoading} error={errorMessage} />
+          </div>
+        </div>
+      </section>
     </div>
   );
 } 

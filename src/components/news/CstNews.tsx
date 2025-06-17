@@ -10,7 +10,7 @@ interface CstNewsProps {
 }
 
 // Function to preload images
-const preloadImages = async (news: NewsItem[], isMobile: boolean): Promise<Set<string>> => {
+const preloadImages = async (news: NewsItem[]): Promise<Set<string>> => {
   const preloadedUrls = new Set<string>();
   
   await Promise.all(
@@ -23,7 +23,7 @@ const preloadImages = async (news: NewsItem[], isMobile: boolean): Promise<Set<s
           await new Promise((resolve, reject) => {
             img.onload = resolve;
             img.onerror = reject;
-            img.src = isMobile ? `${url}?t=${Date.now()}` : url;
+            img.src = url;
           });
           preloadedUrls.add(url);
         } catch (error) {
@@ -38,37 +38,15 @@ const preloadImages = async (news: NewsItem[], isMobile: boolean): Promise<Set<s
 export default function CstNews({ news, loading, error }: CstNewsProps) {
   const [loadedIndices, setLoadedIndices] = useState<Set<number>>(new Set());
   const [nextToLoad, setNextToLoad] = useState(0);
-  const [forceLoadAll, setForceLoadAll] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect mobile device
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Use React Query to cache preloaded images
   const { data: preloadedImages = new Set<string>() } = useQuery<Set<string>>({
-    queryKey: ['cstPreloadedImages', news.map(item => item.id).join(','), isMobile],
-    queryFn: () => preloadImages(news, isMobile),
+    queryKey: ['cstPreloadedImages', news.map(item => item.id).join(',')],
+    queryFn: () => preloadImages(news),
     enabled: news.length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
   });
-
-  // Force load all images after a shorter delay on mobile
-  useEffect(() => {
-    if (news && news.length > 0) {
-      const timer = setTimeout(() => {
-        setForceLoadAll(true);
-      }, isMobile ? 500 : 1000); // Reduced delay significantly
-      return () => clearTimeout(timer);
-    }
-  }, [news, isMobile]);
 
   const handleImageLoaded = (index: number) => {
     setLoadedIndices(prev => new Set([...prev, index]));
@@ -80,58 +58,40 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
   };
 
   const canLoadImage = (index: number) => {
-    if (forceLoadAll) return true;
-    
-    // More aggressive loading on mobile
-    if (isMobile) {
-      return (
-        Math.abs(index - nextToLoad) <= 6 || // Increased range
-        loadedIndices.has(index - 1) ||
-        index < 8 // Increased initial load
-      );
-    }
-    
-    // Desktop loading strategy
-    return (
-      Math.abs(index - nextToLoad) <= 3 ||
-      loadedIndices.has(index - 1) ||
-      index < 4
-    );
+    return Math.abs(index - nextToLoad) <= 3 || loadedIndices.has(index - 1) || index < 4;
   };
 
-  // Only show loading state on initial load and when there's no data
-  if (loading && news.length === 0) {
+  // Only show loading state on initial load
+  if (loading && (!news || news.length === 0)) {
     return (
-      <div className="px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, index) => (
-            <div key={index} className="aspect-[4/3]">
-              <div className="w-full h-full bg-white rounded-lg shadow-sm overflow-hidden">
-                {/* Image skeleton */}
-                <div className="w-full h-[60%] bg-gray-100 animate-pulse" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[...Array(6)].map((_, index) => (
+          <div key={index} className="aspect-[4/3]">
+            <div className="w-full h-full bg-white rounded-lg shadow-sm overflow-hidden">
+              {/* Image skeleton */}
+              <div className="w-full h-[60%] bg-gray-100 animate-pulse" />
+              
+              {/* Content skeleton */}
+              <div className="p-4 space-y-3">
+                {/* Title skeleton */}
+                <div className="h-4 bg-gray-100 animate-pulse rounded w-3/4" />
                 
-                {/* Content skeleton */}
-                <div className="p-4 space-y-3">
-                  {/* Title skeleton */}
-                  <div className="h-4 bg-gray-100 animate-pulse rounded w-3/4" />
-                  
-                  {/* Date skeleton */}
-                  <div className="flex items-center space-x-2">
-                    <div className="h-3 bg-gray-100 animate-pulse rounded w-24" />
-                    <div className="h-3 bg-gray-100 animate-pulse rounded w-16" />
-                  </div>
-                  
-                  {/* Description skeleton */}
-                  <div className="space-y-2">
-                    <div className="h-3 bg-gray-100 animate-pulse rounded w-full" />
-                    <div className="h-3 bg-gray-100 animate-pulse rounded w-5/6" />
-                    <div className="h-3 bg-gray-100 animate-pulse rounded w-4/6" />
-                  </div>
+                {/* Date skeleton */}
+                <div className="flex items-center space-x-2">
+                  <div className="h-3 bg-gray-100 animate-pulse rounded w-24" />
+                  <div className="h-3 bg-gray-100 animate-pulse rounded w-16" />
+                </div>
+                
+                {/* Description skeleton */}
+                <div className="space-y-2">
+                  <div className="h-3 bg-gray-100 animate-pulse rounded w-full" />
+                  <div className="h-3 bg-gray-100 animate-pulse rounded w-5/6" />
+                  <div className="h-3 bg-gray-100 animate-pulse rounded w-4/6" />
                 </div>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -158,20 +118,18 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
     .slice(0, 10);
 
   return (
-    <div className="px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {recentNews.map((item: NewsItem, index: number) => (
-          <div key={item.id} className="aspect-[4/3]">
-            <CstNewsCard 
-              news={item}
-              isImageLoaded={checkImageLoaded(item)}
-              index={index}
-              onImageLoaded={handleImageLoaded}
-              canLoad={canLoadImage(index)}
-            />
-          </div>
-        ))}
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {recentNews.map((item: NewsItem, index: number) => (
+        <div key={item.id} className="aspect-[4/3]">
+          <CstNewsCard 
+            news={item}
+            isImageLoaded={checkImageLoaded(item)}
+            index={index}
+            onImageLoaded={handleImageLoaded}
+            canLoad={canLoadImage(index)}
+          />
+        </div>
+      ))}
     </div>
   );
 } 

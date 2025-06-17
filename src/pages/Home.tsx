@@ -15,8 +15,6 @@ export default function Home() {
       if (error) throw new Error('Failed to load news');
       return data;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 
   const mainCampusNews = news.filter(item => item.campus?.name === "Main Campus");
@@ -26,22 +24,22 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative py-8 md:py-16 px-4">
+      <section className="relative py-16 px-4">
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 mb-3 md:mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
               What's News
             </h1>
             <motion.p
-              className="text-gray-600 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed"
+              className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
             >
               Stay informed with the latest updates, events, and announcements from across our campuses
             </motion.p>
@@ -50,10 +48,10 @@ export default function Home() {
       </section>
 
       {/* Content Section */}
-      <section className="flex-1 px-4 py-4 md:py-8">
-        <div className="max-w-6xl mx-auto space-y-8 md:space-y-12">
+      <section className="flex-1 overflow-y-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto space-y-12">
           {/* Main Campus Section */}
-          <div className="space-y-3 md:space-y-4">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-medium text-gray-700">Main Campus News</h2>
               <Link to="/news?campus=Main%20Campus">
@@ -73,7 +71,7 @@ export default function Home() {
           <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
 
           {/* CST Section */}
-          <div className="space-y-3 md:space-y-4">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-medium text-gray-700">College of Science and Technology</h2>
               <Link to="/news?campus=CST">
