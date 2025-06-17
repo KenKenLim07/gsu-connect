@@ -40,21 +40,21 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
+    <AuthProvider>
         <Suspense fallback={isInitialLoad ? <PageLoader /> : null}>
-          <Routes>
-            <Route element={<MainLayout />}>
+      <Routes>
+        <Route element={<MainLayout />}>
               <Route path="/" element={<Home />} />
               <Route path="/news" element={<NewsPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/login" element={<Login />} />
-              {/* Catch all route - redirect to home */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Route>
-          </Routes>
+          {/* Catch all route - redirect to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
         </Suspense>
-        <Toaster />
-      </AuthProvider>
+      <Toaster />
+    </AuthProvider>
     </QueryClientProvider>
   );
 }

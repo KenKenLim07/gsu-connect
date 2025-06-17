@@ -3,6 +3,7 @@ import type { NewsItem } from "@/types/news";
 import NewsPreviewCard from "./NewsPreviewCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 interface MainCampusNewsProps {
   news: NewsItem[];
@@ -19,72 +20,61 @@ interface ImageDimensions {
   };
 }
 
+// Function to preload images and get dimensions
+const preloadImages = async (news: NewsItem[]): Promise<ImageDimensions> => {
+  const dimensions: ImageDimensions = {};
+  
+  await Promise.all(
+    news.map(async (item) => {
+      if (!item.image_url) return;
+      
+      try {
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = item.image_url!;
+        });
+        
+        const aspectRatio = img.width / img.height;
+        dimensions[item.id] = {
+          width: img.width,
+          height: img.height,
+          isValid: aspectRatio >= 1 && aspectRatio <= 16/9,
+          isLoading: false
+        };
+      } catch (error) {
+        console.warn(`Failed to load image for news item ${item.id}:`, error);
+        dimensions[item.id] = {
+          width: 0,
+          height: 0,
+          isValid: false,
+          isLoading: false
+        };
+      }
+    })
+  );
+  
+  return dimensions;
+};
+
 export default function MainCampusNews({ news, loading: parentLoading, error }: MainCampusNewsProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [imageDimensions, setImageDimensions] = useState<ImageDimensions>({});
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
+  // Use React Query to cache image dimensions
+  const { data: imageDimensions = {} as ImageDimensions } = useQuery<ImageDimensions>({
+    queryKey: ['mainCampusImageDimensions', news.map(item => item.id).join(',')],
+    queryFn: () => preloadImages(news),
+    enabled: news.length > 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+  });
+
   const minSwipeDistance = 50;
-
-  // Load and check image dimensions
-  useEffect(() => {
-    const loadImages = async () => {
-      if (!news.length) return;
-
-      const initialDimensions: ImageDimensions = {};
-      news.forEach(item => {
-        if (item.image_url) {
-          initialDimensions[item.id] = {
-            width: 0,
-            height: 0,
-            isValid: false,
-            isLoading: true
-          };
-        }
-      });
-      setImageDimensions(initialDimensions);
-
-      for (const item of news) {
-        if (!item.image_url) continue;
-        
-        try {
-          const img = new Image();
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = item.image_url!;
-          });
-          
-          const aspectRatio = img.width / img.height;
-          setImageDimensions(prev => ({
-            ...prev,
-            [item.id]: {
-              width: img.width,
-              height: img.height,
-              isValid: aspectRatio >= 1 && aspectRatio <= 16/9,
-              isLoading: false
-            }
-          }));
-        } catch (error) {
-          console.warn(`Failed to load image for news item ${item.id}:`, error);
-          setImageDimensions(prev => ({
-            ...prev,
-            [item.id]: {
-              width: 0,
-              height: 0,
-              isValid: false,
-              isLoading: false
-            }
-          }));
-        }
-      }
-    };
-
-    loadImages();
-  }, [news]);
 
   const filteredNews = useMemo(() => {
     return news
@@ -170,10 +160,8 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     resetTimer();
   };
 
-  const firstItem = news[0];
-  const firstItemDimensions = firstItem ? imageDimensions[firstItem.id] : null;
-
-  if (parentLoading || !firstItemDimensions || firstItemDimensions.isLoading) {
+  // Only show loading state on initial load
+  if (parentLoading && (!news || news.length === 0)) {
     return (
       <div className="relative min-h-[425px]">
         <div className="relative flex items-center justify-center gap-0 px-4 md:px-12 overflow-visible">

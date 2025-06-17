@@ -74,7 +74,7 @@ export default function Home() {
           {/* CST Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-medium text-gray-700">College of Science and Technology (CST)</h2>
+              <h2 className="text-base font-medium text-gray-700">College of Science and Technology</h2>
               <Link to="/news?campus=CST">
                 <Card className="hover:bg-gray-50 transition-colors border-gray-300">
                   <CardContent className="px-2 py-1">
