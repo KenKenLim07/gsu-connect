@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HomeIcon, NewspaperIcon, InformationCircleIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -12,7 +13,14 @@ const Navbar = () => {
     if (isTransitioning) return;
     setIsTransitioning(true);
     setOpen((prev) => !prev);
-    setTimeout(() => setIsTransitioning(false), 400); // Match animation duration
+    setTimeout(() => setIsTransitioning(false), 400);
+  }, [isTransitioning]);
+
+  const handleMenuClose = useCallback(() => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setOpen(false);
+    setTimeout(() => setIsTransitioning(false), 400);
   }, [isTransitioning]);
 
   useEffect(() => {
@@ -169,7 +177,14 @@ const Navbar = () => {
                 >
                   <Link 
                     to={item.to} 
-                    onClick={() => setOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleMenuClose();
+                      // Small delay to ensure state updates before navigation
+                      setTimeout(() => {
+                        navigate(item.to);
+                      }, 100);
+                    }}
                     className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2"
                   >
                     <item.icon className="w-5 h-5" />
