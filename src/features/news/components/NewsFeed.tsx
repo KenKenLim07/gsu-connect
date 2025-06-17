@@ -58,30 +58,29 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
     <div className="h-full flex flex-col">
       <div className="sticky top-14 z-40 bg-white w-full">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
+          <div className="flex flex-col gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="hover:opacity-80 transition-opacity w-fit"
+              aria-label="Go back"
+            >
+              <Card className="border-gray-300">
+                <CardContent className="p-2">
+                  <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Back</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </button>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate(-1)}
-                className="hover:opacity-80 transition-opacity"
-                aria-label="Go back"
-              >
-                <Card className="border-gray-300">
-                  <CardContent className="p-2">
-                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <ArrowLeft className="w-3.5 h-3.5" />
-                      <span>Back</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </button>
-              <h1 className="text-2xl font-bold text-gray-900">GSU News</h1>
-            </div>
+              <h1 className="text-lg font-medium text-gray-900">GSU News</h1>
             <div className="flex items-center gap-4">
               <Select
                 value={selectedSource}
                 onValueChange={(value: string) => setSelectedSource(value)}
               >
-                <SelectTrigger className="w-[200px]">
+                  <SelectTrigger className="w-[180px] h-8 text-sm">
                   <SelectValue>
                     {selectedSource === "All" ? "All Sources" : selectedSource}
                   </SelectValue>
@@ -95,6 +94,7 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
                   ))}
                 </SelectContent>
               </Select>
+              </div>
             </div>
           </div>
         </div>

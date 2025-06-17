@@ -1,4 +1,7 @@
 name: GSU News Scraper
+concurrency:
+  group: scrape-news
+  cancel-in-progress: false
 
 # Workflow to automatically scrape GSU news
 on:

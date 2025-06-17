@@ -9,8 +9,8 @@ export interface NewsItem {
   url: string;
   source_url: string;
   image_url?: string;
-  published_at?: string;
-  campus_id?: string;
+  published_at: string;
+  campus_id: string;  // Remove the optional modifier
 }
 
 export async function scrapeGsuMain(): Promise<{ data: NewsItem[]; error: Error | null }> {

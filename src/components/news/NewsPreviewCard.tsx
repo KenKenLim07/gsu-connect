@@ -70,7 +70,7 @@ export default function NewsPreviewCard({ news, variant, isImageLoaded = false, 
             <span className="truncate max-w-[60px] md:max-w-[70px]">{news.source_url ? new URL(news.source_url).hostname.replace('www.', '') : 'GSU'}</span>
             <span>•</span>
             <span>{formatDate(news.published_at)}</span>
-          </div>
+        </div>
         </div>
       ) : (
         <div className="h-[70px] sm:h-[80px]" />

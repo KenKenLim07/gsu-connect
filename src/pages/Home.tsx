@@ -42,21 +42,21 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-center"
-          >
+              >
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
               What's News
             </h1>
-            <motion.p
+              <motion.p
               className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               Stay informed with the latest updates, events, and announcements from across our campuses
-            </motion.p>
+              </motion.p>
           </motion.div>
         </div>
       </section>
@@ -94,15 +94,15 @@ export default function Home() {
                     <div className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900">
                       Show all
                       <ArrowRight className="w-3 h-3" />
-                    </div>
+        </div>
                   </CardContent>
                 </Card>
               </Link>
-            </div>
+      </div>
             <CstNews news={cstNews} loading={loading} error={error} />
           </div>
         </div>
       </section>
     </div>
   );
-}
+} 

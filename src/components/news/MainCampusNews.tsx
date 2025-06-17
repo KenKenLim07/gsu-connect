@@ -418,20 +418,43 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
         {filteredNews.length > 0 && (
           <div className="mt-4 text-center">
             {filteredNews.map((_, i) => (
-              <button
+              <motion.button
                 key={i}
                 onClick={() => {
                   setDirection(i > currentIndex ? 1 : -1);
                   setCurrentIndex(i);
                   resetTimer();
                 }}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 inline-block mx-1 ${
-                  i === currentIndex 
-                    ? "bg-blue-600 scale-125" 
-                    : "bg-gray-300 hover:bg-gray-400"
-                }`}
-                aria-label={`Go to slide ${i + 1}`}
-              />
+                className="relative inline-block mx-1"
+                whileHover={{ scale: 1.2 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <motion.div
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    i === currentIndex ? "bg-blue-600" : "bg-gray-300"
+                  }`}
+                  animate={{
+                    scale: i === currentIndex ? [1, 1.8, 1.4] : 1,
+                    opacity: i === currentIndex ? 1 : 0.5,
+                  }}
+                  transition={{
+                    duration: 0.4,
+                    ease: "easeInOut",
+                    times: [0, 0.5, 1],
+                  }}
+                />
+                {i === currentIndex && (
+                  <motion.div
+                    className="absolute inset-0 rounded-full bg-blue-600/20"
+                    layoutId="activeDot"
+                    transition={{
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 30,
+                    }}
+                  />
+                )}
+              </motion.button>
             ))}
           </div>
         )}

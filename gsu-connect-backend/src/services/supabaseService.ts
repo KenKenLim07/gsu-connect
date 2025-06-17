@@ -1,5 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import type { NewsItem } from '../scrapers/gsuCstScraper';
+import type { NewsItem as CstNewsItem } from '../scrapers/gsuCstScraper';
+import type { NewsItem as MainNewsItem } from '../scrapers/gsuMainScraper';
+
+type NewsItem = CstNewsItem | MainNewsItem;
 
 let supabaseClient: ReturnType<typeof createClient> | null = null;
 

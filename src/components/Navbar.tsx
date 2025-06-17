@@ -61,7 +61,7 @@ const Navbar = () => {
               >
                 <item.icon className="w-5 h-5" />
                 <span>{item.label}</span>
-              </Link>
+            </Link>
             ))}
           </div>
 
@@ -189,7 +189,7 @@ const Navbar = () => {
                   >
                     <item.icon className="w-5 h-5" />
                     <span>{item.label}</span>
-                  </Link>
+              </Link>
                 </motion.div>
               ))}
             </motion.div>

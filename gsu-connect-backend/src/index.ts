@@ -23,9 +23,11 @@ import { scrapeGsuMain } from './scrapers/gsuMainScraper';
 import { saveNews } from './services/supabaseService';
 
 async function main() {
+  console.log(`\n🕒 Scraper started at: ${new Date().toLocaleString()}`);
+  
   try {
     // Scrape CST news
-    console.log('\n=== Scraping GSU CST news ===');
+    console.groupCollapsed('🌐 CST News Results');
     const cstNews = await scrapeGsuCstNews();
     console.log(`Found ${cstNews.length} CST articles.`);
     if (cstNews.length) {
@@ -33,12 +35,18 @@ async function main() {
       if (cstError) {
         console.error('Error saving CST news to Supabase:', cstError.message);
       } else {
-        console.log(`Saved ${cstCount} new CST articles and updated ${cstUpdateCount} existing articles.`);
+        console.log({ newArticles: cstCount, updated: cstUpdateCount });
       }
     }
+    console.groupEnd();
+
+    // Random delay between scraping targets
+    const waitTime = Math.floor(Math.random() * 3000) + 2000;
+    console.log(`Sleeping for ${waitTime}ms before scraping GSU Main...`);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
 
     // Scrape Main Campus news
-    console.log('\n=== Scraping GSU Main news ===');
+    console.groupCollapsed('🌐 Main Campus News Results');
     const { data: mainNews, error: mainError } = await scrapeGsuMain();
     if (mainError) {
       console.error('Error scraping Main Campus news:', mainError.message);
@@ -48,18 +56,22 @@ async function main() {
         const { error: saveError, count: mainCount, updateCount: mainUpdateCount } = await saveNews(mainNews);
         if (saveError) {
           console.error('Error saving Main Campus news to Supabase:', saveError.message);
-  } else {
-          console.log(`Saved ${mainCount} new Main Campus articles and updated ${mainUpdateCount} existing articles.`);
+        } else {
+          console.log({ newArticles: mainCount, updated: mainUpdateCount });
         }
       }
     }
+    console.groupEnd();
+
+    console.log('\n✅ Scraper completed successfully.');
+    process.exit(0);
   } catch (err) {
-    console.error('Unexpected error:', err);
+    console.error('❌ Scraper failed:', err);
     process.exit(1);
   }
 }
 
 main().catch((err) => {
-  console.error('Unexpected error:', err);
+  console.error('❌ Scraper failed:', err);
   process.exit(1);
 }); 
