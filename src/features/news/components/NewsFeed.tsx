@@ -4,41 +4,29 @@ import NewsCard from "./NewsCard";
 import NewsCardSkeleton from "../../../components/news/NewsCardSkeleton";
 import { getNews } from "../../../services/newsService";
 import type { NewsItem } from "../../../types/news";
+import { useQuery } from "@tanstack/react-query";
 
 interface NewsFeedProps {
   initialCampus?: string | null;
 }
 
 export default function NewsFeed({ initialCampus }: NewsFeedProps) {
-  const [news, setNews] = useState<NewsItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<string>(initialCampus || "All");
+
+  const { data: news = [], isLoading, error } = useQuery({
+    queryKey: ['news'],
+    queryFn: async () => {
+      const { data, error } = await getNews();
+      if (error) throw new Error('Failed to load news');
+      return data;
+    },
+  });
 
   useEffect(() => {
     if (initialCampus) {
       setSelectedSource(initialCampus);
     }
   }, [initialCampus]);
-
-  useEffect(() => {
-    async function fetchNews() {
-      try {
-        const { data, error } = await getNews();
-        if (error) {
-          setError('Failed to load news. Please try again later.');
-          return;
-        }
-        setNews(data);
-      } catch (err) {
-        setError('An unexpected error occurred. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchNews();
-  }, []);
 
   const filteredNews = selectedSource === "All"
     ? news
@@ -85,14 +73,14 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
       <div className="flex-1 overflow-y-auto pt-2">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
           <div className="space-y-3">
-            {loading ? (
+            {isLoading ? (
               // Show 3 skeleton cards while loading
               Array.from({ length: 3 }).map((_, index) => (
                 <NewsCardSkeleton key={index} />
               ))
             ) : error ? (
               <div className="text-center py-12">
-                <p className="text-red-600 mb-4">{error}</p>
+                <p className="text-red-600 mb-4">Failed to load news. Please try again later.</p>
                 <button
                   onClick={() => window.location.reload()}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
