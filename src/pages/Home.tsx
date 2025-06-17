@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getNews } from "@/services/newsService";
+import type { NewsItem } from "@/types/news";
 import MainCampusNews from "@/components/news/MainCampusNews";
 import CstNews from "@/components/news/CstNews";
 import { motion } from "framer-motion";
@@ -8,18 +9,25 @@ import { ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
-  const { data: news = [], isLoading, error } = useQuery({
+  const { data: news = [], isLoading, error } = useQuery<NewsItem[]>({
     queryKey: ['news'],
     queryFn: async () => {
       const { data, error } = await getNews();
       if (error) throw new Error('Failed to load news');
       return data;
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnWindowFocus: false, // Prevent refetch on focus
+    refetchOnMount: false, // Prevent refetch on mount if we have cached data
   });
 
-  const mainCampusNews = news.filter(item => item.campus?.name === "Main Campus");
-  const cstNews = news.filter(item => item.campus?.name === "CST");
+  const mainCampusNews = news.filter((item: NewsItem) => item.campus?.name === "Main Campus");
+  const cstNews = news.filter((item: NewsItem) => item.campus?.name === "CST");
   const errorMessage = error instanceof Error ? error.message : null;
+
+  // Only show loading state if we have no data at all
+  const showLoading = isLoading && news.length === 0;
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -65,7 +73,11 @@ export default function Home() {
                 </Card>
               </Link>
             </div>
-            <MainCampusNews news={mainCampusNews} loading={isLoading} error={errorMessage} />
+            <MainCampusNews 
+              news={mainCampusNews} 
+              loading={showLoading} 
+              error={errorMessage} 
+            />
           </div>
 
           <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
@@ -85,7 +97,11 @@ export default function Home() {
                 </Card>
               </Link>
             </div>
-            <CstNews news={cstNews} loading={isLoading} error={errorMessage} />
+            <CstNews 
+              news={cstNews} 
+              loading={showLoading} 
+              error={errorMessage} 
+            />
           </div>
         </div>
       </section>
