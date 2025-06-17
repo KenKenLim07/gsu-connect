@@ -65,7 +65,7 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
     if (news && news.length > 0) {
       const timer = setTimeout(() => {
         setForceLoadAll(true);
-      }, isMobile ? 2000 : 5000);
+      }, isMobile ? 500 : 1000); // Reduced delay
       return () => clearTimeout(timer);
     }
   }, [news, isMobile]);
@@ -85,9 +85,9 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
     // More aggressive loading on mobile
     if (isMobile) {
       return (
-        Math.abs(index - nextToLoad) <= 4 ||
+        Math.abs(index - nextToLoad) <= 6 || // Increased range
         loadedIndices.has(index - 1) ||
-        index < 6
+        index < 8 // Increased initial load
       );
     }
     
@@ -99,8 +99,8 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
     );
   };
 
-  // Only show loading state on initial load
-  if (loading && (!news || news.length === 0)) {
+  // Show loading state only during initial data fetch
+  if (loading && news.length === 0) {
     return (
       <div className="px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
