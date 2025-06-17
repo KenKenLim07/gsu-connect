@@ -21,7 +21,7 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 500,
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -30,9 +30,11 @@ export default defineConfig({
           'utils': ['class-variance-authority', 'clsx', 'tailwind-merge'],
           'animations': ['framer-motion'],
           'icons': ['lucide-react'],
+          'query': ['@tanstack/react-query', '@tanstack/react-query-devtools'],
         },
       },
     },
+    sourcemap: true,
   },
   server: {
     port: 5173,
