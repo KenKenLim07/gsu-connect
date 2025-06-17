@@ -24,14 +24,12 @@ export default defineConfig({
     chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react')) return 'vendor-react';
-            if (id.includes('framer-motion')) return 'vendor-framer-motion';
-            if (id.includes('lucide-react')) return 'vendor-icons';
-            if (id.includes('@shadcn')) return 'vendor-ui';
-            return 'vendor'; // fallback
-          }
+        manualChunks: {
+          'vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui': ['@radix-ui/react-select', '@radix-ui/react-dialog', '@radix-ui/react-slot'],
+          'utils': ['class-variance-authority', 'clsx', 'tailwind-merge'],
+          'animations': ['framer-motion'],
+          'icons': ['lucide-react'],
         },
       },
     },
