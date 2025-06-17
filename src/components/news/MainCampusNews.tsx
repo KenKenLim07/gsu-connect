@@ -22,17 +22,27 @@ interface ImageDimensions {
 
 // Function to preload images and get dimensions
 const preloadImages = async (news: NewsItem[]): Promise<ImageDimensions> => {
+  console.log('[MainCampusNews] Starting image preload for', news.length, 'items');
   const dimensions: ImageDimensions = {};
   
   await Promise.all(
     news.map(async (item) => {
-      if (!item.image_url) return;
+      if (!item.image_url) {
+        console.log('[MainCampusNews] No image URL for item:', item.id);
+        return;
+      }
       
       try {
         const img = new Image();
         await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
+          img.onload = () => {
+            console.log('[MainCampusNews] Image loaded successfully:', item.id);
+            resolve(null);
+          };
+          img.onerror = (error) => {
+            console.warn('[MainCampusNews] Failed to load image:', item.id, error);
+            reject(error);
+          };
           img.src = item.image_url!;
         });
         
@@ -44,7 +54,7 @@ const preloadImages = async (news: NewsItem[]): Promise<ImageDimensions> => {
           isLoading: false
         };
       } catch (error) {
-        console.warn(`Failed to load image for news item ${item.id}:`, error);
+        console.warn(`[MainCampusNews] Failed to load image for news item ${item.id}:`, error);
         dimensions[item.id] = {
           width: 0,
           height: 0,
@@ -55,18 +65,26 @@ const preloadImages = async (news: NewsItem[]): Promise<ImageDimensions> => {
     })
   );
   
+  console.log('[MainCampusNews] Image preload complete:', dimensions);
   return dimensions;
 };
 
 export default function MainCampusNews({ news, loading: parentLoading, error }: MainCampusNewsProps) {
+  console.log('[MainCampusNews] Component render:', { 
+    newsLength: news.length, 
+    parentLoading, 
+    error 
+  });
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const isMounted = useRef(false);
 
   // Use React Query to cache image dimensions
-  const { data: imageDimensions = {} as ImageDimensions } = useQuery<ImageDimensions>({
+  const { data: imageDimensions = {} as ImageDimensions, isLoading: isImageLoading } = useQuery<ImageDimensions>({
     queryKey: ['mainCampusImageDimensions', news.map(item => item.id).join(',')],
     queryFn: () => preloadImages(news),
     enabled: news.length > 0,
@@ -74,16 +92,40 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     gcTime: 30 * 60 * 1000, // 30 minutes
   });
 
+  useEffect(() => {
+    isMounted.current = true;
+    console.log('[MainCampusNews] Component mounted');
+    return () => {
+      isMounted.current = false;
+      console.log('[MainCampusNews] Component unmounted');
+    };
+  }, []);
+
   const minSwipeDistance = 50;
 
   const filteredNews = useMemo(() => {
-    return news
+    console.log('[MainCampusNews] Filtering news:', { 
+      totalNews: news.length, 
+      imageDimensionsCount: Object.keys(imageDimensions).length 
+    });
+    
+    const filtered = news
       .filter(item => {
         const dimensions = imageDimensions[item.id];
-        return item.image_url && dimensions?.isValid && !dimensions.isLoading;
+        const isValid = item.image_url && dimensions?.isValid && !dimensions.isLoading;
+        if (!isValid) {
+          console.log('[MainCampusNews] Item filtered out:', item.id, { 
+            hasImage: !!item.image_url, 
+            dimensions: dimensions 
+          });
+        }
+        return isValid;
       })
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 5); // Limit to 5 items
+      .slice(0, 5);
+
+    console.log('[MainCampusNews] Filtered news count:', filtered.length);
+    return filtered;
   }, [news, imageDimensions]);
 
   const resetTimer = useCallback(() => {
@@ -117,7 +159,8 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     const currentTouch = e.targetTouches[0].clientX;
     const currentY = e.targetTouches[0].clientY;
     
-    if (touchStart && Math.abs(currentTouch - touchStart) > Math.abs(currentY - (touchStart ? e.targetTouches[0].clientY : 0))) {
+    // Only prevent default if we're actually swiping
+    if (touchStart && Math.abs(currentTouch - touchStart) > minSwipeDistance) {
       e.preventDefault();
     }
     
@@ -160,8 +203,9 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     resetTimer();
   };
 
-  // Only show loading state on initial load
-  if (parentLoading && (!news || news.length === 0)) {
+  // Show loading state if we're still loading images or if parent is loading
+  if ((isImageLoading || parentLoading) && (!news || news.length === 0)) {
+    console.log('[MainCampusNews] Showing loading state:', { isImageLoading, parentLoading, newsLength: news?.length });
     return (
       <div className="relative min-h-[425px]">
         <div className="relative flex items-center justify-center gap-0 px-4 md:px-12 overflow-visible">
@@ -202,7 +246,9 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     );
   }
 
+  // Show error state
   if (error) {
+    console.log('[MainCampusNews] Showing error state:', error);
     return (
       <div className="text-center py-6">
         <p className="text-red-600 mb-4">{error}</p>
@@ -216,7 +262,9 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     );
   }
 
+  // Show empty state
   if (filteredNews.length === 0) {
+    console.log('[MainCampusNews] Showing empty state');
     return (
       <div className="text-center py-6">
         <p className="text-gray-500">No news available for Main Campus</p>
