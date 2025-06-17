@@ -1,0 +1,8 @@
+import{c}from"./index-BAYP90Ju.js";const o="https://fkyokvjruvgsritmazey.supabase.co",u="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZreW9rdmpydXZnc3JpdG1hemV5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0OTMwNTc1MywiZXhwIjoyMDY0ODgxNzUzfQ.2s8Wpf_IjYG5OKL0w7BsPe6k5NIm2kYO6IH0MY8uLgE",s=c(o,u,{auth:{persistSession:!0,autoRefreshToken:!0,detectSessionInUrl:!0}});function i(t){const e=t;return{id:e.id,title:e.title,content:e.content,published_at:e.published_at,source_url:e.source_url,campus_id:e.campus_id,created_at:e.created_at,image_url:e.image_url||void 0,campus:e.campus?{id:e.campus.id,name:e.campus.name,location:e.campus.location,created_at:e.campus.created_at}:void 0}}let r=null;async function p(){try{return r||(console.log("Fetching news from Supabase..."),console.log("Supabase URL:","https://fkyokvjruvgsritmazey.supabase.co"),r=(async()=>{try{const{error:t}=await s.from("news").select("id").limit(1);if(t)return console.error("Supabase connection test failed:",t),{data:[],error:t,count:0};console.log("Supabase connection successful, fetching full news data...");const{data:e,error:a,count:n}=await s.from("news").select(`
+        *,
+        campus:campus_id (
+          id,
+              name
+        )
+          `,{count:"exact"}).order("created_at",{ascending:!1});return a?(console.error("Error fetching news:",a),{data:[],error:a,count:0}):{data:e.map(i),error:null,count:n||0}}finally{r=null}})(),r)}catch(t){return console.error("Unexpected error in getNews:",t),{data:[],error:t,count:0}}}export{p as g};
+//# sourceMappingURL=newsService-CDlhuq-C.js.map
