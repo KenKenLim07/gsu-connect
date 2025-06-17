@@ -160,8 +160,8 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     resetTimer();
   };
 
-  // Only show loading state on initial load
-  if (parentLoading && (!news || news.length === 0)) {
+  // Only show loading state when there's no data
+  if (news.length === 0) {
     return (
       <div className="relative min-h-[425px]">
         <div className="relative flex items-center justify-center gap-0 px-4 md:px-12 overflow-visible">

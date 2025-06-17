@@ -1,47 +1,59 @@
 import { useQuery } from "@tanstack/react-query";
 import { getNews } from "@/services/newsService";
-import type { NewsItem } from "@/types/news";
 import MainCampusNews from "@/components/news/MainCampusNews";
 import CstNews from "@/components/news/CstNews";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Home() {
-  const { data: news = [], isLoading, error } = useQuery<NewsItem[]>({
+  const { data: news = [], isLoading, error } = useQuery({
     queryKey: ['news'],
     queryFn: async () => {
       const { data, error } = await getNews();
       if (error) throw new Error('Failed to load news');
       return data;
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   });
 
-  const mainCampusNews = news.filter((item: NewsItem) => item.campus?.name === "Main Campus");
-  const cstNews = news.filter((item: NewsItem) => item.campus?.name === "CST");
+  const mainCampusNews = news.filter(item => item.campus?.name === "Main Campus");
+  const cstNews = news.filter(item => item.campus?.name === "CST");
   const errorMessage = error instanceof Error ? error.message : null;
 
   return (
-    <div className="min-h-[100dvh] w-full bg-white overflow-x-hidden">
+    <div className="flex flex-col min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="relative py-8 px-4">
+      <section className="relative py-8 md:py-16 px-4">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-center"
+          >
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 mb-3 md:mb-4">
               What's News
             </h1>
-            <p className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+            <motion.p
+              className="text-gray-600 text-sm md:text-lg max-w-2xl mx-auto leading-relaxed"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
               Stay informed with the latest updates, events, and announcements from across our campuses
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
         </div>
       </section>
 
       {/* Content Section */}
-      <section className="flex-1 w-full px-4 py-8">
-        <div className="max-w-6xl mx-auto space-y-12">
+      <section className="flex-1 px-4 py-4 md:py-8">
+        <div className="max-w-6xl mx-auto space-y-8 md:space-y-12">
           {/* Main Campus Section */}
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-medium text-gray-700">Main Campus News</h2>
               <Link to="/news?campus=Main%20Campus">
@@ -61,7 +73,7 @@ export default function Home() {
           <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
 
           {/* CST Section */}
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-medium text-gray-700">College of Science and Technology</h2>
               <Link to="/news?campus=CST">
