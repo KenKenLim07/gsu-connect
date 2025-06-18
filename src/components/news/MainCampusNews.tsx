@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState } from "react";
 import type { NewsItem } from "@/types/news";
 import NewsPreviewCard from "./NewsPreviewCard";
 import { motion, AnimatePresence } from "framer-motion";
