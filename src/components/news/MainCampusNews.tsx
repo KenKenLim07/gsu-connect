@@ -26,22 +26,21 @@ const checkImageAspectRatio = (imageUrl: string): Promise<boolean> => {
 };
 
 export default function MainCampusNews({ news, loading: parentLoading, error }: MainCampusNewsProps) {
-  console.log('[MainCampusNews] Component render:', { 
-    newsLength: news.length, 
-    parentLoading, 
-    error 
-  });
-
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const [validImages, setValidImages] = useState<Set<string>>(new Set());
+  const [isImageChecking, setIsImageChecking] = useState(false);
 
   // Check image aspect ratios when news changes
   useEffect(() => {
     const checkImages = async () => {
+      if (news.length === 0) return;
+      
+      setIsImageChecking(true);
+      
       const validUrls = new Set<string>();
       
       for (const item of news) {
@@ -54,11 +53,10 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
       }
       
       setValidImages(validUrls);
+      setIsImageChecking(false);
     };
 
-    if (news.length > 0) {
-      checkImages();
-    }
+    checkImages();
   }, [news]);
 
   // Filter news items with valid images
@@ -67,22 +65,22 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
 
-  console.log('[MainCampusNews] Filtered news count:', filteredNews.length, 'Valid images:', validImages.size);
-
   const resetTimer = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
-    timerRef.current = setInterval(() => {
-      setDirection(1);
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % filteredNews.length);
-    }, 3300);
+    // Disable auto-rotation to prevent white screen flash
+    // timerRef.current = setInterval(() => {
+    //   setDirection(1);
+    //   setCurrentIndex((prevIndex) => (prevIndex + 1) % filteredNews.length);
+    // }, 3300);
   }, [filteredNews.length]);
 
   useEffect(() => {
-    if (filteredNews.length > 0) {
-      resetTimer();
-    }
+    // Disable auto-rotation timer setup
+    // if (filteredNews.length > 0) {
+    //   resetTimer();
+    // }
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
@@ -93,7 +91,7 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
-    resetTimer();
+    // resetTimer(); // Removed since timer is disabled
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
@@ -113,24 +111,23 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
         setCurrentIndex((prevIndex) => (prevIndex - 1 + filteredNews.length) % filteredNews.length);
       }
     }
-    resetTimer();
+    // resetTimer(); // Removed since timer is disabled
   };
 
   const handlePrevious = () => {
     setDirection(-1);
     setCurrentIndex((prevIndex) => (prevIndex - 1 + filteredNews.length) % filteredNews.length);
-    resetTimer();
+    // resetTimer(); // Removed since timer is disabled
   };
 
   const handleNext = () => {
     setDirection(1);
     setCurrentIndex((prevIndex) => (prevIndex + 1) % filteredNews.length);
-    resetTimer();
+    // resetTimer(); // Removed since timer is disabled
   };
 
   // Show loading state only when parent is loading and no news available
   if (parentLoading && (!news || news.length === 0)) {
-    console.log('[MainCampusNews] Showing loading state');
     return (
       <div className="relative min-h-[425px]">
         <div className="relative flex items-center justify-center gap-0 px-4 md:px-12 overflow-visible">
@@ -173,7 +170,6 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
 
   // Show error state
   if (error) {
-    console.log('[MainCampusNews] Showing error state:', error);
     return (
       <div className="text-center py-6">
         <p className="text-red-600 mb-4">{error}</p>
@@ -187,12 +183,53 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     );
   }
 
-  // Show empty state
-  if (filteredNews.length === 0) {
-    console.log('[MainCampusNews] Showing empty state');
+  // Show empty state - but only if we're not still checking images
+  if (filteredNews.length === 0 && !isImageChecking) {
     return (
       <div className="text-center py-6">
         <p className="text-gray-500">No news available for Main Campus</p>
+      </div>
+    );
+  }
+
+  // Show loading while checking images
+  if (isImageChecking && filteredNews.length === 0) {
+    return (
+      <div className="relative min-h-[425px]">
+        <div className="relative flex items-center justify-center gap-0 px-4 md:px-12 overflow-visible">
+          {/* Previous Skeleton */}
+          <div className="w-1/4 md:w-1/5 -mr-4 md:-mr-6">
+            <div className="w-full h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px] bg-gray-100 animate-pulse rounded-lg" />
+          </div>
+
+          {/* Current Skeleton */}
+          <div className="w-2/3 md:w-3/4">
+            <div className="w-full h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px] bg-gray-100 animate-pulse rounded-lg" />
+            <div className="mt-2 space-y-1.5 p-1.5">
+              <div className="h-3 bg-gray-100 animate-pulse rounded w-3/4 mx-auto" />
+              <div className="flex items-center justify-center gap-1.5">
+                <div className="h-2.5 bg-gray-100 animate-pulse rounded w-16" />
+                <div className="h-2.5 bg-gray-100 animate-pulse rounded w-2" />
+                <div className="h-2.5 bg-gray-100 animate-pulse rounded w-20" />
+              </div>
+            </div>
+          </div>
+
+          {/* Next Skeleton */}
+          <div className="w-1/4 md:w-1/5 -ml-4 md:-ml-6">
+            <div className="w-full h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px] bg-gray-100 animate-pulse rounded-lg" />
+          </div>
+        </div>
+
+        {/* Skeleton Dots */}
+        <div className="mt-4 text-center">
+          {[1, 2, 3, 4, 5].map((_, index) => (
+            <div
+              key={index}
+              className="w-1.5 h-1.5 rounded-full bg-gray-200 inline-block mx-1"
+            />
+          ))}
+        </div>
       </div>
     );
   }
