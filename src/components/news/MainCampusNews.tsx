@@ -1,9 +1,8 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import type { NewsItem } from "@/types/news";
 import NewsPreviewCard from "./NewsPreviewCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 
 interface MainCampusNewsProps {
   news: NewsItem[];
@@ -11,62 +10,19 @@ interface MainCampusNewsProps {
   error: string | null;
 }
 
-interface ImageDimensions {
-  [key: string]: {
-    width: number;
-    height: number;
-    isValid: boolean;
-    isLoading: boolean;
-  };
-}
-
-// Function to preload images and get dimensions
-const preloadImages = async (news: NewsItem[]): Promise<ImageDimensions> => {
-  console.log('[MainCampusNews] Starting image preload for', news.length, 'items');
-  const dimensions: ImageDimensions = {};
-  
-  await Promise.all(
-    news.map(async (item) => {
-      if (!item.image_url) {
-        console.log('[MainCampusNews] No image URL for item:', item.id);
-        return;
-      }
-      
-      try {
-        const img = new Image();
-        await new Promise((resolve, reject) => {
-          img.onload = () => {
-            console.log('[MainCampusNews] Image loaded successfully:', item.id);
-            resolve(null);
-          };
-          img.onerror = (error) => {
-            console.warn('[MainCampusNews] Failed to load image:', item.id, error);
-            reject(error);
-          };
-          img.src = item.image_url!;
-        });
-        
-        const aspectRatio = img.width / img.height;
-        dimensions[item.id] = {
-          width: img.width,
-          height: img.height,
-          isValid: aspectRatio >= 1 && aspectRatio <= 16/9,
-          isLoading: false
-        };
-      } catch (error) {
-        console.warn(`[MainCampusNews] Failed to load image for news item ${item.id}:`, error);
-        dimensions[item.id] = {
-          width: 0,
-          height: 0,
-          isValid: false,
-          isLoading: false
-        };
-      }
-    })
-  );
-  
-  console.log('[MainCampusNews] Image preload complete:', dimensions);
-  return dimensions;
+// Simple function to check if image has valid aspect ratio
+const checkImageAspectRatio = (imageUrl: string): Promise<boolean> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const aspectRatio = img.width / img.height;
+      resolve(aspectRatio >= 1 && aspectRatio <= 16/9);
+    };
+    img.onerror = () => {
+      resolve(false);
+    };
+    img.src = imageUrl;
+  });
 };
 
 export default function MainCampusNews({ news, loading: parentLoading, error }: MainCampusNewsProps) {
@@ -81,52 +37,37 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const isMounted = useRef(false);
+  const [validImages, setValidImages] = useState<Set<string>>(new Set());
 
-  // Use React Query to cache image dimensions
-  const { data: imageDimensions = {} as ImageDimensions, isLoading: isImageLoading } = useQuery<ImageDimensions>({
-    queryKey: ['mainCampusImageDimensions', news.map(item => item.id).join(',')],
-    queryFn: () => preloadImages(news),
-    enabled: news.length > 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
-  });
-
+  // Check image aspect ratios when news changes
   useEffect(() => {
-    isMounted.current = true;
-    console.log('[MainCampusNews] Component mounted');
-    return () => {
-      isMounted.current = false;
-      console.log('[MainCampusNews] Component unmounted');
-    };
-  }, []);
-
-  const minSwipeDistance = 50;
-
-  const filteredNews = useMemo(() => {
-    console.log('[MainCampusNews] Filtering news:', { 
-      totalNews: news.length, 
-      imageDimensionsCount: Object.keys(imageDimensions).length 
-    });
-    
-    const filtered = news
-      .filter(item => {
-        const dimensions = imageDimensions[item.id];
-        const isValid = item.image_url && dimensions?.isValid && !dimensions.isLoading;
-        if (!isValid) {
-          console.log('[MainCampusNews] Item filtered out:', item.id, { 
-            hasImage: !!item.image_url, 
-            dimensions: dimensions 
-          });
+    const checkImages = async () => {
+      const validUrls = new Set<string>();
+      
+      for (const item of news) {
+        if (item.image_url) {
+          const isValid = await checkImageAspectRatio(item.image_url);
+          if (isValid) {
+            validUrls.add(item.image_url);
+          }
         }
-        return isValid;
-      })
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-      .slice(0, 5);
+      }
+      
+      setValidImages(validUrls);
+    };
 
-    console.log('[MainCampusNews] Filtered news count:', filtered.length);
-    return filtered;
-  }, [news, imageDimensions]);
+    if (news.length > 0) {
+      checkImages();
+    }
+  }, [news]);
+
+  // Filter news items with valid images
+  const filteredNews = news
+    .filter(item => item.image_url && validImages.has(item.image_url))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 5);
+
+  console.log('[MainCampusNews] Filtered news count:', filteredNews.length, 'Valid images:', validImages.size);
 
   const resetTimer = useCallback(() => {
     if (timerRef.current) {
@@ -157,33 +98,18 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
 
   const onTouchMove = (e: React.TouchEvent) => {
     const currentTouch = e.targetTouches[0].clientX;
-    
-    // Only prevent default if we're actually swiping
-    if (touchStart && Math.abs(currentTouch - touchStart) > minSwipeDistance) {
-      e.preventDefault();
-    }
-    
     setTouchEnd(currentTouch);
-    
-    if (touchStart) {
-      const distance = touchStart - currentTouch;
-      if (Math.abs(distance) > minSwipeDistance) {
-        setDirection(distance > 0 ? 1 : -1);
-      }
-    }
   };
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
+    const minSwipeDistance = 50;
 
     if (Math.abs(distance) > minSwipeDistance) {
-      if (isLeftSwipe) {
+      if (distance > 0) {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % filteredNews.length);
-      }
-      if (isRightSwipe) {
+      } else {
         setCurrentIndex((prevIndex) => (prevIndex - 1 + filteredNews.length) % filteredNews.length);
       }
     }
@@ -202,9 +128,9 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     resetTimer();
   };
 
-  // Show loading state if we're still loading images or if parent is loading
-  if ((isImageLoading || parentLoading) && (!news || news.length === 0)) {
-    console.log('[MainCampusNews] Showing loading state:', { isImageLoading, parentLoading, newsLength: news?.length });
+  // Show loading state only when parent is loading and no news available
+  if (parentLoading && (!news || news.length === 0)) {
+    console.log('[MainCampusNews] Showing loading state');
     return (
       <div className="relative min-h-[425px]">
         <div className="relative flex items-center justify-center gap-0 px-4 md:px-12 overflow-visible">
@@ -282,7 +208,6 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        style={{ touchAction: 'pan-y pinch-zoom' }}
       >
         <button
           onClick={handlePrevious}
