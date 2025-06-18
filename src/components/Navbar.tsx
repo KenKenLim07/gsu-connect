@@ -2,12 +2,37 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HomeIcon, NewspaperIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { useDarkMode } from "@/features/theme/useDarkMode";
+import { MoonIcon, SunIcon } from "@heroicons/react/24/solid";
+
+function DarkModeSwitch({ isDark, toggleDark }: { isDark: boolean; toggleDark: () => void }) {
+  return (
+    <button
+      onClick={toggleDark}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      className={`relative w-12 h-6 flex items-center rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-primary
+        ${isDark ? 'bg-gray-700' : 'bg-gray-300'}`}
+    >
+      <span
+        className={`absolute left-1 top-0.5 w-5 h-5 rounded-full bg-white shadow-md flex items-center justify-center transition-transform duration-300
+          ${isDark ? 'translate-x-6' : 'translate-x-0'}`}
+      >
+        {isDark ? (
+          <MoonIcon className="w-4 h-4 text-gray-500" />
+        ) : (
+          <SunIcon className="w-4 h-4 text-yellow-400" />
+        )}
+      </span>
+    </button>
+  );
+}
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { isDark, toggleDark } = useDarkMode();
 
   const handleToggle = useCallback(() => {
     if (isTransitioning) return;
@@ -40,13 +65,13 @@ const Navbar = () => {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
-      isScrolled || open ? 'bg-white shadow-sm' : 'bg-transparent'
+      isScrolled || open ? 'bg-white shadow-sm dark:bg-gray-950 dark:shadow-black/30' : 'bg-transparent'
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-14">
           <div className="flex">
             <Link to="/" className="flex items-center">
-              <span className="text-sm font-bold text-gray-900">GSU Connect</span>
+              <span className="text-sm font-bold text-gray-900 dark:text-gray-100">GSU Connect</span>
             </Link>
           </div>
 
@@ -56,19 +81,22 @@ const Navbar = () => {
               <Link 
                 key={item.to} 
                 to={item.to} 
-                className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900"
+                className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
               >
                 <item.icon className="w-5 h-5" />
                 <span>{item.label}</span>
             </Link>
             ))}
+            {/* Dark mode toggle */}
+            <div className="ml-4"><DarkModeSwitch isDark={isDark} toggleDark={toggleDark} /></div>
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
+          {/* Mobile Menu Button and Dark Mode Toggle */}
+          <div className="md:hidden flex items-center gap-2">
+            <DarkModeSwitch isDark={isDark} toggleDark={toggleDark} />
             <motion.button
               onClick={handleToggle}
-              className="p-2 rounded-lg text-gray-600 hover:text-gray-900"
+              className="p-2 rounded-lg text-gray-600 hover:text-gray-900 dark:text-white"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -131,7 +159,7 @@ const Navbar = () => {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="md:hidden bg-white border-b overflow-hidden"
+            className="md:hidden bg-white dark:bg-gray-950 border-b overflow-hidden"
           >
             <motion.div 
               className="flex flex-col py-2 px-4 gap-2"
@@ -184,11 +212,11 @@ const Navbar = () => {
                         navigate(item.to);
                       }, 100);
                     }}
-                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 py-2"
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white py-2"
                   >
                     <item.icon className="w-5 h-5" />
                     <span>{item.label}</span>
-              </Link>
+                  </Link>
                 </motion.div>
               ))}
             </motion.div>

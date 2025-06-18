@@ -67,26 +67,26 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(6)].map((_, index) => (
           <div key={index} className="aspect-[4/3]">
-            <div className="w-full h-full bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="w-full h-full bg-white dark:bg-gray-900 rounded-lg shadow-sm overflow-hidden">
               {/* Image skeleton */}
-              <div className="w-full h-[60%] bg-gray-100 animate-pulse" />
+              <div className="w-full h-[60%] bg-gray-100 dark:bg-gray-800 animate-pulse" />
               
               {/* Content skeleton */}
               <div className="p-4 space-y-3">
                 {/* Title skeleton */}
-                <div className="h-4 bg-gray-100 animate-pulse rounded w-3/4" />
+                <div className="h-4 bg-gray-100 dark:bg-gray-800 animate-pulse rounded w-3/4" />
                 
                 {/* Date skeleton */}
                 <div className="flex items-center space-x-2">
-                  <div className="h-3 bg-gray-100 animate-pulse rounded w-24" />
-                  <div className="h-3 bg-gray-100 animate-pulse rounded w-16" />
+                  <div className="h-3 bg-gray-100 dark:bg-gray-800 animate-pulse rounded w-24" />
+                  <div className="h-3 bg-gray-100 dark:bg-gray-800 animate-pulse rounded w-16" />
                 </div>
                 
                 {/* Description skeleton */}
                 <div className="space-y-2">
-                  <div className="h-3 bg-gray-100 animate-pulse rounded w-full" />
-                  <div className="h-3 bg-gray-100 animate-pulse rounded w-5/6" />
-                  <div className="h-3 bg-gray-100 animate-pulse rounded w-4/6" />
+                  <div className="h-3 bg-gray-100 dark:bg-gray-800 animate-pulse rounded w-full" />
+                  <div className="h-3 bg-gray-100 dark:bg-gray-800 animate-pulse rounded w-5/6" />
+                  <div className="h-3 bg-gray-100 dark:bg-gray-800 animate-pulse rounded w-4/6" />
                 </div>
               </div>
             </div>
@@ -99,7 +99,7 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-500">{error}</p>
+        <p className="text-red-500 dark:text-red-300">{error}</p>
       </div>
     );
   }
@@ -107,7 +107,7 @@ export default function CstNews({ news, loading, error }: CstNewsProps) {
   if (!news || news.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">No news available for CST</p>
+        <p className="text-gray-500 dark:text-gray-300">No news available for CST</p>
       </div>
     );
   }

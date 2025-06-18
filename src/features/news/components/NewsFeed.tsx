@@ -39,12 +39,12 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
   const sourceNames = Array.from(new Set(news.map(item => item.campus?.name).filter((name): name is string => name !== undefined)));
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="sticky top-14 z-40 bg-white w-full">
+    <div className="h-full flex flex-col bg-white dark:bg-gray-950">
+      <div className="sticky top-14 z-40 bg-white dark:bg-gray-950 w-full">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-lg font-medium text-gray-900">GSU News</h1>
+              <h1 className="text-lg font-medium text-gray-900 dark:text-gray-100">GSU News</h1>
               <div className="flex items-center gap-4">
                 <Select
                   value={selectedSource}

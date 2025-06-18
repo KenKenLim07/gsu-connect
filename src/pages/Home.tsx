@@ -27,7 +27,7 @@ export default function Home() {
   const errorMessage = error instanceof Error ? error.message : null;
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       {/* Hero Section */}
       <section className="relative py-16 px-4">
         <div className="max-w-5xl mx-auto">
@@ -37,11 +37,11 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
               What's News
             </h1>
             <motion.p
-              className="text-xs text-gray-600 max-w-2xl mx-auto leading-relaxed"
+              className="text-xs text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -58,13 +58,13 @@ export default function Home() {
           {/* Main Campus Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900 border-b-2 border-black inline-block pb-1">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 border-b-2 border-black dark:border-gray-200 inline-block pb-1">
                 Salvador
               </h2>
               <Link to="/news?campus=Main%20Campus">
-                <Card className="hover:bg-gray-50 transition-colors border-gray-300">
+                <Card className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors border-gray-300 dark:border-gray-700">
                   <CardContent className="px-2 py-1">
-                    <div className="flex items-center gap-1 text-xs text-black hover:text-gray-900">
+                    <div className="flex items-center gap-1 text-xs text-black dark:text-gray-100 hover:text-gray-900 dark:hover:text-white">
                       Show all
                       <ArrowRight className="w-3 h-3" />
                     </div>
@@ -75,18 +75,18 @@ export default function Home() {
             <MainCampusNews news={mainCampusNews} loading={isLoading} error={errorMessage} />
           </div>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent" />
 
           {/* CST Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900 border-b-2 border-black inline-block pb-1">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 border-b-2 border-black dark:border-gray-200 inline-block pb-1">
                 Mosqueda
               </h2>
               <Link to="/news?campus=CST">
-                <Card className="hover:bg-gray-50 transition-colors border-gray-300">
+                <Card className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors border-gray-300 dark:border-gray-700">
                   <CardContent className="px-2 py-1">
-                    <div className="flex items-center gap-1 text-xs text-black hover:text-gray-900">
+                    <div className="flex items-center gap-1 text-xs text-black dark:text-gray-100 hover:text-gray-900 dark:hover:text-white">
                       Show all
                       <ArrowRight className="w-3 h-3" />
                     </div>
