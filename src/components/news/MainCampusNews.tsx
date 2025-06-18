@@ -1,8 +1,7 @@
 import { useState } from "react";
 import type { NewsItem } from "@/types/news";
-import NewsPreviewCard from "./NewsPreviewCard";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { Calendar } from "lucide-react";
 
 interface MainCampusNewsProps {
   news: NewsItem[];
@@ -10,90 +9,103 @@ interface MainCampusNewsProps {
   error: string | null;
 }
 
-export default function MainCampusNews({ news, loading: parentLoading, error }: MainCampusNewsProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(0);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+export default function MainCampusNews({ news, loading, error }: MainCampusNewsProps) {
+  const [showMenu, setShowMenu] = useState<number | null>(null);
 
-  // Simple filtering - just get the first 5 news items with images
+  // Get only the 3 most recent news items with images for better visibility
   const filteredNews = news
-    .filter(item => item.image_url) // Only items with images
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 5);
+    .filter(item => item.image_url)
+    .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime())
+    .slice(0, 3);
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return 'Today';
+    if (diffDays === 2) return 'Yesterday';
+    if (diffDays <= 7) return `${diffDays - 1} days ago`;
+    
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined
+    });
   };
 
-  const onTouchMove = (e: React.TouchEvent) => {
-    const currentTouch = e.targetTouches[0].clientX;
-    setTouchEnd(currentTouch);
+  const handleMenuClick = (e: React.MouseEvent, index: number) => {
+    e.stopPropagation();
+    setShowMenu(showMenu === index ? null : index);
   };
 
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const minSwipeDistance = 50;
+  const handleViewSource = (e: React.MouseEvent, item: NewsItem) => {
+    e.stopPropagation();
+    if (item.source_url) {
+      window.open(item.source_url, '_blank', 'noopener,noreferrer');
+    }
+    setShowMenu(null);
+  };
 
-    if (Math.abs(distance) > minSwipeDistance) {
-      if (distance > 0) {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % filteredNews.length);
-      } else {
-        setCurrentIndex((prevIndex) => (prevIndex - 1 + filteredNews.length) % filteredNews.length);
+  const handleShare = async (e: React.MouseEvent, item: NewsItem) => {
+    e.stopPropagation();
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: item.title,
+          text: item.content.substring(0, 100),
+          url: item.source_url || window.location.href,
+        });
+      } catch (error) {
+        console.log('Share cancelled or failed');
+      }
+    } else {
+      // Fallback: copy to clipboard
+      const shareText = `${item.title}\n\n${item.content.substring(0, 100)}...\n\nRead more: ${item.source_url || window.location.href}`;
+      try {
+        await navigator.clipboard.writeText(shareText);
+        console.log('Content copied to clipboard');
+      } catch (error) {
+        console.error('Failed to copy to clipboard');
       }
     }
+    setShowMenu(null);
   };
 
-  const handlePrevious = () => {
-    setDirection(-1);
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + filteredNews.length) % filteredNews.length);
+  // Close menu when clicking outside
+  const handleClickOutside = () => {
+    setShowMenu(null);
   };
 
-  const handleNext = () => {
-    setDirection(1);
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % filteredNews.length);
-  };
-
-  // Show loading state only when parent is loading and no news available
-  if (parentLoading && (!news || news.length === 0)) {
+  // Show loading state
+  if (loading && (!news || news.length === 0)) {
     return (
-      <div className="relative min-h-[425px]">
-        <div className="relative flex items-center justify-center gap-0 px-4 md:px-12 overflow-visible">
-          {/* Previous Skeleton */}
-          <div className="w-1/4 md:w-1/5 -mr-4 md:-mr-6">
-            <div className="w-full h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px] bg-gray-100 animate-pulse rounded-lg" />
-          </div>
-
-          {/* Current Skeleton */}
-          <div className="w-2/3 md:w-3/4">
-            <div className="w-full h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px] bg-gray-100 animate-pulse rounded-lg" />
-            <div className="mt-2 space-y-1.5 p-1.5">
-              <div className="h-3 bg-gray-100 animate-pulse rounded w-3/4 mx-auto" />
-              <div className="flex items-center justify-center gap-1.5">
-                <div className="h-2.5 bg-gray-100 animate-pulse rounded w-16" />
-                <div className="h-2.5 bg-gray-100 animate-pulse rounded w-2" />
-                <div className="h-2.5 bg-gray-100 animate-pulse rounded w-20" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {[...Array(3)].map((_, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+            className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
+          >
+            <div className="h-40 bg-gray-100 animate-pulse" />
+            <div className="p-4 space-y-3">
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-100 animate-pulse rounded w-3/4" />
+                <div className="h-4 bg-gray-100 animate-pulse rounded w-1/2" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-3 bg-gray-100 animate-pulse rounded w-full" />
+                <div className="h-3 bg-gray-100 animate-pulse rounded w-5/6" />
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 bg-gray-100 animate-pulse rounded w-20" />
               </div>
             </div>
-          </div>
-
-          {/* Next Skeleton */}
-          <div className="w-1/4 md:w-1/5 -ml-4 md:-ml-6">
-            <div className="w-full h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px] bg-gray-100 animate-pulse rounded-lg" />
-          </div>
-        </div>
-
-        {/* Skeleton Dots */}
-        <div className="mt-4 text-center">
-          {[1, 2, 3, 4, 5].map((_, index) => (
-            <div
-              key={index}
-              className="w-1.5 h-1.5 rounded-full bg-gray-200 inline-block mx-1"
-            />
-          ))}
-        </div>
+          </motion.div>
+        ))}
       </div>
     );
   }
@@ -101,14 +113,17 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
   // Show error state
   if (error) {
     return (
-      <div className="text-center py-6">
-        <p className="text-red-600 mb-4">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Try Again
-        </button>
+      <div className="text-center py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md mx-auto">
+          <p className="text-red-600 font-medium mb-2">Failed to load news</p>
+          <p className="text-red-500 text-sm mb-3">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
@@ -116,219 +131,103 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
   // Show empty state
   if (filteredNews.length === 0) {
     return (
-      <div className="text-center py-6">
-        <p className="text-gray-500">No news available for Main Campus</p>
+      <div className="text-center py-8">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-w-md mx-auto">
+          <p className="text-gray-500 font-medium">No news available</p>
+          <p className="text-gray-400 text-sm mt-1">Check back later for updates</p>
+        </div>
       </div>
     );
   }
 
-  const getAdjacentIndex = (offset: number) => {
-    return (currentIndex + offset + filteredNews.length) % filteredNews.length;
-  };
-
   return (
-    <div className="w-full">
-      <div 
-        className="relative group"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-        <button
-          onClick={handlePrevious}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg hidden md:block opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
-          aria-label="Previous slide"
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6" onClick={handleClickOutside}>
+      {filteredNews.map((item, index) => (
+        <motion.article
+          key={item.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: index * 0.1 }}
+          className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:border-gray-200 transition-all duration-300"
         >
-          <ChevronLeft className="w-6 h-6 text-gray-600" />
-        </button>
-
-        <button
-          onClick={handleNext}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/80 backdrop-blur-sm shadow-lg hidden md:block opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
-          aria-label="Next slide"
-        >
-          <ChevronRight className="w-6 h-6 text-gray-600" />
-        </button>
-
-        <div className="relative flex items-center justify-center gap-0 px-4 md:px-12 overflow-visible">
-          <AnimatePresence mode="popLayout" initial={false}>
-            {/* Previous Image */}
-            <motion.div
-              key={`prev-${currentIndex}`}
-              initial={{ 
-                x: 100,
-                opacity: 0,
-                scale: 0.8,
-                zIndex: 1
-              }}
-              animate={{ 
-                x: 0,
-                opacity: 0.7,
-                scale: 1.5,
-                zIndex: 1,
-                y: 40,
-                transition: {
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 25,
-                  mass: 0.8,
-                  velocity: 0.5
-                }
-              }}
-              exit={{ 
-                x: -100,
-                opacity: 0,
-                scale: 0.8,
-                transition: {
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 25,
-                  mass: 0.8,
-                  velocity: 0.5
-                }
-              }}
-              className="w-1/4 md:w-1/5 -mr-4 md:-mr-6"
-            >
-              <NewsPreviewCard 
-                news={filteredNews[getAdjacentIndex(-1)]} 
-                variant="main"
-                showTitle={false}
-              />
-            </motion.div>
-
-            {/* Current Image */}
-            <motion.div
-              key={`current-${currentIndex}`}
-              initial={{ 
-                x: direction * 100,
-                opacity: 0,
-                scale: 0.9,
-                zIndex: 2
-              }}
-              animate={{ 
-                x: 0,
-                opacity: 1,
-                scale: 1.4,
-                zIndex: 2,
-                transition: {
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 25,
-                  mass: 0.8,
-                  velocity: 0.5
-                }
-              }}
-              exit={{ 
-                x: -direction * 100,
-                opacity: 0,
-                scale: 0.9,
-                transition: {
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 25,
-                  mass: 0.8,
-                  velocity: 0.5
-                }
-              }}
-              className="w-2/3 md:w-3/4"
-            >
-              <NewsPreviewCard 
-                news={filteredNews[currentIndex]} 
-                variant="main"
-                showTitle={true}
-              />
-            </motion.div>
-
-            {/* Next Image */}
-            <motion.div
-              key={`next-${currentIndex}`}
-              initial={{ 
-                x: -100,
-                opacity: 0,
-                scale: 0.8,
-                zIndex: 1
-              }}
-              animate={{ 
-                x: 0,
-                opacity: 0.7,
-                scale: 1.5,
-                zIndex: 1,
-                y: 40,
-                transition: {
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 25,
-                  mass: 0.8,
-                  velocity: 0.5
-                }
-              }}
-              exit={{ 
-                x: 100,
-                opacity: 0,
-                scale: 0.8,
-                transition: {
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 25,
-                  mass: 0.8,
-                  velocity: 0.5
-                }
-              }}
-              className="w-1/4 md:w-1/5 -ml-4 md:-ml-6"
-            >
-              <NewsPreviewCard 
-                news={filteredNews[getAdjacentIndex(1)]} 
-                variant="main"
-                showTitle={false}
-              />
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Dot indicators */}
-        {filteredNews.length > 0 && (
-          <div className="mt-4 text-center">
-            {filteredNews.map((_, i) => (
-              <motion.button
-                key={i}
-                onClick={() => {
-                  setDirection(i > currentIndex ? 1 : -1);
-                  setCurrentIndex(i);
-                }}
-                className="relative inline-block mx-1"
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <motion.div
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    i === currentIndex ? "bg-blue-600" : "bg-gray-300"
-                  }`}
-                  animate={{
-                    scale: i === currentIndex ? [1, 1.8, 1.4] : 1,
-                    opacity: i === currentIndex ? 1 : 0.5,
-                  }}
-                  transition={{
-                    duration: 0.4,
-                    ease: "easeInOut",
-                    times: [0, 0.5, 1],
-                  }}
-                />
-                {i === currentIndex && (
-                  <motion.div
-                    className="absolute inset-0 rounded-full bg-blue-600/20"
-                    layoutId="activeDot"
-                    transition={{
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 30,
-                    }}
-                  />
-                )}
-              </motion.button>
-            ))}
+          {/* Image */}
+          <div className="relative h-40 overflow-hidden">
+            <img
+              src={item.image_url}
+              alt={item.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           </div>
-        )}
-      </div>
+
+          {/* Content */}
+          <div className="p-4 space-y-3">
+            {/* Title with Menu */}
+            <div className="flex justify-between items-start gap-2">
+              <h3 className="font-semibold text-gray-900 leading-tight line-clamp-2 text-sm flex-1">
+                {item.title}
+              </h3>
+              <div className="relative">
+                <button 
+                  onClick={(e) => handleMenuClick(e, index)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                  </svg>
+                </button>
+                
+                {/* Dropdown Menu */}
+                {showMenu === index && (
+                  <div className="absolute right-0 top-6 z-20 bg-white border border-gray-200 rounded-md shadow-lg min-w-[140px]">
+                    <button
+                      onClick={(e) => handleViewSource(e, item)}
+                      className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      View Source
+                    </button>
+                    <button
+                      onClick={(e) => handleShare(e, item)}
+                      className="w-full text-left px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100 flex items-center gap-2"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                      </svg>
+                      Share
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Excerpt */}
+            <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">
+              {item.content.length > 100 
+                ? `${item.content.substring(0, 100)}...` 
+                : item.content
+              }
+            </p>
+
+            {/* Metadata */}
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                <span>{formatDate(item.published_at)}</span>
+              </div>
+              
+              {/* Source domain */}
+              {item.source_url && (
+                <span className="text-gray-400 truncate max-w-20">
+                  {new URL(item.source_url).hostname.replace('www.', '')}
+                </span>
+              )}
+            </div>
+          </div>
+        </motion.article>
+      ))}
     </div>
   );
 } 

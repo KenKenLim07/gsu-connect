@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getNews } from "@/services/newsService";
 import type { NewsItem } from "@/types/news";
-// import MainCampusNews from "@/components/news/MainCampusNews";
+import MainCampusNews from "@/components/news/MainCampusNews";
 import CstNews from "@/components/news/CstNews";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -22,7 +22,7 @@ export default function Home() {
     retry: 1,
   });
 
-  // const mainCampusNews = news.filter(item => item.campus?.name === "Main Campus");
+  const mainCampusNews = news.filter(item => item.campus?.name === "Main Campus");
   const cstNews = news.filter(item => item.campus?.name === "CST");
   const errorMessage = error instanceof Error ? error.message : null;
 
@@ -55,8 +55,8 @@ export default function Home() {
       {/* Content Section */}
       <section className="flex-1 overflow-y-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-12">
-          {/* Main Campus Section - COMMENTED OUT FOR TESTING */}
-          {/* <div className="space-y-4">
+          {/* Main Campus Section */}
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-medium text-gray-700">Main Campus News</h2>
               <Link to="/news?campus=Main%20Campus">
@@ -73,7 +73,7 @@ export default function Home() {
             <MainCampusNews news={mainCampusNews} loading={isLoading} error={errorMessage} />
           </div>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" /> */}
+          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
 
           {/* CST Section */}
           <div className="space-y-4">
