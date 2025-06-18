@@ -10,88 +10,21 @@ interface MainCampusNewsProps {
   error: string | null;
 }
 
-// Simple function to check if image has valid aspect ratio
-const checkImageAspectRatio = (imageUrl: string): Promise<boolean> => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const aspectRatio = img.width / img.height;
-      resolve(aspectRatio >= 1 && aspectRatio <= 16/9);
-    };
-    img.onerror = () => {
-      resolve(false);
-    };
-    img.src = imageUrl;
-  });
-};
-
 export default function MainCampusNews({ news, loading: parentLoading, error }: MainCampusNewsProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const [validImages, setValidImages] = useState<Set<string>>(new Set());
-  const [isImageChecking, setIsImageChecking] = useState(false);
 
-  // Check image aspect ratios when news changes
-  useEffect(() => {
-    const checkImages = async () => {
-      if (news.length === 0) return;
-      
-      setIsImageChecking(true);
-      
-      const validUrls = new Set<string>();
-      
-      for (const item of news) {
-        if (item.image_url) {
-          const isValid = await checkImageAspectRatio(item.image_url);
-          if (isValid) {
-            validUrls.add(item.image_url);
-          }
-        }
-      }
-      
-      setValidImages(validUrls);
-      setIsImageChecking(false);
-    };
-
-    checkImages();
-  }, [news]);
-
-  // Filter news items with valid images
+  // Simple filtering - just get the first 5 news items with images
   const filteredNews = news
-    .filter(item => item.image_url && validImages.has(item.image_url))
+    .filter(item => item.image_url) // Only items with images
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 5);
-
-  const resetTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    // Disable auto-rotation to prevent white screen flash
-    // timerRef.current = setInterval(() => {
-    //   setDirection(1);
-    //   setCurrentIndex((prevIndex) => (prevIndex + 1) % filteredNews.length);
-    // }, 3300);
-  }, [filteredNews.length]);
-
-  useEffect(() => {
-    // Disable auto-rotation timer setup
-    // if (filteredNews.length > 0) {
-    //   resetTimer();
-    // }
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [filteredNews.length, resetTimer]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
-    // resetTimer(); // Removed since timer is disabled
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
@@ -111,19 +44,16 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
         setCurrentIndex((prevIndex) => (prevIndex - 1 + filteredNews.length) % filteredNews.length);
       }
     }
-    // resetTimer(); // Removed since timer is disabled
   };
 
   const handlePrevious = () => {
     setDirection(-1);
     setCurrentIndex((prevIndex) => (prevIndex - 1 + filteredNews.length) % filteredNews.length);
-    // resetTimer(); // Removed since timer is disabled
   };
 
   const handleNext = () => {
     setDirection(1);
     setCurrentIndex((prevIndex) => (prevIndex + 1) % filteredNews.length);
-    // resetTimer(); // Removed since timer is disabled
   };
 
   // Show loading state only when parent is loading and no news available
@@ -183,53 +113,11 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
     );
   }
 
-  // Show empty state - but only if we're not still checking images
-  if (filteredNews.length === 0 && !isImageChecking) {
+  // Show empty state
+  if (filteredNews.length === 0) {
     return (
       <div className="text-center py-6">
         <p className="text-gray-500">No news available for Main Campus</p>
-      </div>
-    );
-  }
-
-  // Show loading while checking images
-  if (isImageChecking && filteredNews.length === 0) {
-    return (
-      <div className="relative min-h-[425px]">
-        <div className="relative flex items-center justify-center gap-0 px-4 md:px-12 overflow-visible">
-          {/* Previous Skeleton */}
-          <div className="w-1/4 md:w-1/5 -mr-4 md:-mr-6">
-            <div className="w-full h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px] bg-gray-100 animate-pulse rounded-lg" />
-          </div>
-
-          {/* Current Skeleton */}
-          <div className="w-2/3 md:w-3/4">
-            <div className="w-full h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px] bg-gray-100 animate-pulse rounded-lg" />
-            <div className="mt-2 space-y-1.5 p-1.5">
-              <div className="h-3 bg-gray-100 animate-pulse rounded w-3/4 mx-auto" />
-              <div className="flex items-center justify-center gap-1.5">
-                <div className="h-2.5 bg-gray-100 animate-pulse rounded w-16" />
-                <div className="h-2.5 bg-gray-100 animate-pulse rounded w-2" />
-                <div className="h-2.5 bg-gray-100 animate-pulse rounded w-20" />
-              </div>
-            </div>
-          </div>
-
-          {/* Next Skeleton */}
-          <div className="w-1/4 md:w-1/5 -ml-4 md:-ml-6">
-            <div className="w-full h-[180px] sm:h-[220px] md:h-[280px] lg:h-[320px] bg-gray-100 animate-pulse rounded-lg" />
-          </div>
-        </div>
-
-        {/* Skeleton Dots */}
-        <div className="mt-4 text-center">
-          {[1, 2, 3, 4, 5].map((_, index) => (
-            <div
-              key={index}
-              className="w-1.5 h-1.5 rounded-full bg-gray-200 inline-block mx-1"
-            />
-          ))}
-        </div>
       </div>
     );
   }
@@ -406,7 +294,6 @@ export default function MainCampusNews({ news, loading: parentLoading, error }: 
                 onClick={() => {
                   setDirection(i > currentIndex ? 1 : -1);
                   setCurrentIndex(i);
-                  resetTimer();
                 }}
                 className="relative inline-block mx-1"
                 whileHover={{ scale: 1.2 }}
