@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HomeIcon, NewspaperIcon, InformationCircleIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, NewspaperIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
 const Navbar = () => {
   const navigate = useNavigate();
