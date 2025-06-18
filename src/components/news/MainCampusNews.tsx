@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { NewsItem } from "@/types/news";
 import { motion } from "framer-motion";
-import { Calendar } from "lucide-react";
 
 interface MainCampusNewsProps {
   news: NewsItem[];
@@ -212,18 +211,12 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
             </p>
 
             {/* Metadata */}
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <div className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                <span>{formatDate(item.published_at)}</span>
-              </div>
-              
-              {/* Source domain */}
-              {item.source_url && (
-                <span className="text-gray-400 truncate max-w-20">
-                  {new URL(item.source_url).hostname.replace('www.', '')}
-                </span>
-              )}
+            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+              <span className="whitespace-nowrap">{formatDate(item.published_at)}</span>
+              <span>•</span>
+              <span className="truncate">
+                {item.source_url ? new URL(item.source_url).hostname.replace('www.', '') : 'GSU'}
+              </span>
             </div>
           </div>
         </motion.article>

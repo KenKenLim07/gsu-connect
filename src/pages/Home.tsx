@@ -41,12 +41,12 @@ export default function Home() {
               What's News
             </h1>
             <motion.p
-              className="text-gray-600 text-base md:text-lg max-w-2xl mx-auto leading-relaxed"
+              className="text-xs text-gray-600 max-w-2xl mx-auto leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              Stay informed with the latest updates, events, and announcements from across our campuses
+              Stay connected. Stay informed
             </motion.p>
           </motion.div>
         </div>
@@ -58,11 +58,13 @@ export default function Home() {
           {/* Main Campus Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-medium text-gray-700">Main Campus News</h2>
+              <h2 className="text-lg font-bold text-gray-900 border-b-2 border-black inline-block pb-1">
+                Salvador
+              </h2>
               <Link to="/news?campus=Main%20Campus">
                 <Card className="hover:bg-gray-50 transition-colors border-gray-300">
                   <CardContent className="px-2 py-1">
-                    <div className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900">
+                    <div className="flex items-center gap-1 text-xs text-black hover:text-gray-900">
                       Show all
                       <ArrowRight className="w-3 h-3" />
                     </div>
@@ -78,11 +80,13 @@ export default function Home() {
           {/* CST Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-medium text-gray-700">College of Science and Technology</h2>
+              <h2 className="text-lg font-bold text-gray-900 border-b-2 border-black inline-block pb-1">
+                Mosqueda
+              </h2>
               <Link to="/news?campus=CST">
                 <Card className="hover:bg-gray-50 transition-colors border-gray-300">
                   <CardContent className="px-2 py-1">
-                    <div className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900">
+                    <div className="flex items-center gap-1 text-xs text-black hover:text-gray-900">
                       Show all
                       <ArrowRight className="w-3 h-3" />
                     </div>

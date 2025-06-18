@@ -35,8 +35,7 @@ const Navbar = () => {
   const menuItems = [
     { to: "/", icon: HomeIcon, label: "Home" },
     { to: "/news", icon: NewspaperIcon, label: "News" },
-    { to: "/about", icon: InformationCircleIcon, label: "About" },
-    { to: "/login", icon: ArrowRightOnRectangleIcon, label: "Login" }
+    { to: "/about", icon: InformationCircleIcon, label: "About" }
   ];
 
   return (

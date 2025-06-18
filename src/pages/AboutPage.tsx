@@ -1,30 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, easeOut } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-
-// Animation variants as constants
-const CONTAINER_VARIANTS = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-} as const;
-
-const ITEM_VARIANTS = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut"
-    }
-  }
-} as const;
 
 // Static content data
 const aboutContent = {
@@ -61,23 +38,32 @@ const AboutContent = () => {
     gcTime: Infinity, // Keep in cache forever
   });
 
+  // Animation for all except the goal block
+  const COMMON_ANIMATION = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5, ease: easeOut }
+  };
+
+  // Scale animation for the goal block
+  const GOAL_ANIMATION = {
+    initial: { opacity: 0, scale: 0.95 },
+    animate: { opacity: 1, scale: 1 },
+    transition: { duration: 0.5, ease: easeOut, delay: 0.2 }
+  };
+
   return (
-    <motion.div 
-      variants={CONTAINER_VARIANTS}
-      initial="hidden"
-      animate="visible"
-      className="space-y-2 text-gray-600"
-    >
-      <motion.p variants={ITEM_VARIANTS} className="text-sm leading-relaxed">
+    <div className="space-y-2 text-gray-600">
+      <motion.p {...COMMON_ANIMATION} className="text-sm leading-relaxed">
         {content.description}
       </motion.p>
 
-      <motion.p variants={ITEM_VARIANTS} className="text-xs italic leading-relaxed">
+      <motion.p {...COMMON_ANIMATION} className="text-xs italic leading-relaxed">
         {content.context}
       </motion.p>
 
       <motion.div 
-        variants={ITEM_VARIANTS}
+        {...GOAL_ANIMATION}
         className="border border-neutral-200 hover:border-neutral-300 transition-colors duration-200 rounded-lg p-2"
       >
         <h2 className="text-base font-medium text-gray-900 mb-1">My goal is simple:</h2>
@@ -86,10 +72,10 @@ const AboutContent = () => {
         </p>
       </motion.div>
 
-      <motion.p variants={ITEM_VARIANTS} className="text-sm leading-relaxed">
+      <motion.p {...COMMON_ANIMATION} className="text-sm leading-relaxed">
         {content.conclusion}
       </motion.p>
-    </motion.div>
+    </div>
   );
 };
 

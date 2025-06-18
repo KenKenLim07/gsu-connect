@@ -4,6 +4,7 @@ import NewsCard from "./NewsCard";
 import NewsCardSkeleton from "../../../components/news/NewsCardSkeleton";
 import { getNews } from "../../../services/newsService";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 
 interface NewsFeedProps {
   initialCampus?: string | null;
@@ -69,7 +70,7 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pt-2">
+      <div className="flex-1 overflow-y-auto pt-14">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
           <div className="space-y-3">
             {isLoading ? (
@@ -88,8 +89,15 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
                 </button>
               </div>
             ) : (
-              sortedNews.map((item) => (
-                <NewsCard key={item.id} news={item} />
+              sortedNews.map((item, idx) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: idx * 0.05 }}
+                >
+                  <NewsCard news={item} />
+                </motion.div>
               ))
             )}
           </div>

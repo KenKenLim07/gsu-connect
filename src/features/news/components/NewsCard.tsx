@@ -96,26 +96,15 @@ export default function NewsCard({ news }: { news: NewsItem }) {
           </Badge>
           <span className="text-sm text-neutral-600">{published}</span>
         </div>
-        <h3 className="text-lg font-semibold text-neutral-900">{news.title}</h3>
-        <p className="text-sm leading-relaxed text-neutral-600">{news.content}</p>
+        <h3 className="text-lg font-semibold text-neutral-900 break-words">{news.title}</h3>
+        <p className="text-sm leading-relaxed text-neutral-600 break-words">{news.content}</p>
         <div className="flex items-center justify-between pt-2">
-          <button
-            onClick={handleLike}
-            className="flex items-center gap-1.5 text-neutral-600 hover:text-blue-500 transition-colors"
-          >
-            {isLiked ? (
-              <HandThumbUpSolidIcon className="w-5 h-5 text-blue-500" />
-            ) : (
-              <HandThumbUpIcon className="w-5 h-5" />
-            )}
-            <span className="text-sm">{likeCount}</span>
-          </button>
           {news.source_url && (
             <a
               href={news.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-neutral-400 bg-neutral-100 text-neutral-700 hover:text-neutral-900 text-xs"
+              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-neutral-400 bg-neutral-100 text-neutral-700 hover:text-neutral-900 text-xs break-all max-w-full"
             >
               <span>View Source</span>
               <span className="ml-0.5">→</span>
