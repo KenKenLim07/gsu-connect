@@ -143,7 +143,7 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
             <img
               src={item.image_url}
               alt={item.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-300 scale-110 md:scale-100"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
           </div>

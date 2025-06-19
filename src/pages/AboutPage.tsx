@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { motion, easeOut } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useRef, useEffect, useState } from 'react';
 
 // Static content data
 const aboutContent = {
@@ -29,20 +29,25 @@ const BackButton = () => {
 };
 
 const AboutContent = () => {
-  // Use React Query to cache the static content
-  const { data: content = aboutContent } = useQuery({
-    queryKey: ['aboutContent'],
-    queryFn: () => aboutContent,
-    staleTime: Infinity, // Content never goes stale
-    gcTime: Infinity, // Keep in cache forever
-  });
+  const content = aboutContent;
+  const hasAnimated = useRef(false);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+
+  useEffect(() => {
+    if (!hasAnimated.current) {
+      setShouldAnimate(true);
+      hasAnimated.current = true;
+    }
+  }, []);
 
   // Animation for all blocks
-  const COMMON_ANIMATION = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5, ease: easeOut }
-  };
+  const COMMON_ANIMATION = shouldAnimate
+    ? {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.5, ease: easeOut }
+      }
+    : {};
 
   return (
     <div className="space-y-4 text-gray-700 dark:text-gray-200">
@@ -59,9 +64,9 @@ const AboutContent = () => {
         {content.solution}
       </motion.p>
       <motion.div
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: easeOut, delay: 0.2 }}
+        initial={shouldAnimate ? { opacity: 0, scale: 0.97 } : false}
+        animate={shouldAnimate ? { opacity: 1, scale: 1 } : false}
+        transition={shouldAnimate ? { duration: 0.5, ease: easeOut, delay: 0.2 } : undefined}
         className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-lg p-3 shadow-sm"
       >
         <h2 className="text-base font-semibold text-primary mb-1">My goal is simple:</h2>

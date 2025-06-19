@@ -253,9 +253,9 @@ export default function CstNewsCard({ news, isImageLoaded = false, index, onImag
             </div>
             
             {/* Title and Content - Flexible area */}
-            <div className="flex-1 space-y-3 min-h-0">
+            <div className="flex-1 min-h-0 space-y-3 overflow-hidden">
               <h3
-                className="text-xs font-semibold text-gray-900 dark:text-gray-100 leading-tight line-clamp-3 underline decoration-gray-400 dark:decoration-gray-500 underline-offset-2 cursor-pointer hover:decoration-2 transition"
+                className="text-xs font-semibold text-gray-900 dark:text-gray-100 leading-tight line-clamp-4 underline decoration-gray-400 dark:decoration-gray-500 underline-offset-2 cursor-pointer hover:decoration-2 transition"
                 onClick={() => {
                   if (news.source_url) {
                     window.open(news.source_url, '_blank', 'noopener,noreferrer');
@@ -267,11 +267,8 @@ export default function CstNewsCard({ news, isImageLoaded = false, index, onImag
               >
                 {news.title}
               </h3>
-              <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-6 lg:line-clamp-6">
-                {news.content.length > 150 
-                  ? `${news.content.substring(0, 150)}...` 
-                  : news.content
-                }
+              <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-5">
+                {news.content}
               </p>
             </div>
 

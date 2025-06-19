@@ -86,7 +86,7 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
                   <SelectContent className="text-xs">
                     <SelectItem value="All">All Sources</SelectItem>
                     {sourceNames.map((sourceName) => (
-                      <SelectItem key={sourceName} value={sourceName} className="text-xs py-1 px-2">
+                      <SelectItem key={sourceName} value={sourceName} className="text-xs py-1 px-2 pl-6 flex items-center">
                         {sourceName}
                       </SelectItem>
                     ))}
