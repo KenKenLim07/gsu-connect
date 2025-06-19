@@ -185,7 +185,6 @@ export default function CstNewsCard({ news, isImageLoaded = false, index, onImag
   return (
     <div 
       className="block relative h-full"
-      style={{ touchAction: 'pan-y pinch-zoom' }}
     >
       <div ref={containerRef} className="relative h-full overflow-hidden rounded-lg bg-white dark:bg-gray-900 shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="flex h-full">
