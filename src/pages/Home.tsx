@@ -6,7 +6,7 @@ import CstNews from "@/components/news/CstNews";
 import { motion, useInView } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowUpIcon } from '@heroicons/react/24/outline';
 
 function AnimatedSectionHeader({ children, revealOnScroll = false }: { children: string, revealOnScroll?: boolean }) {
