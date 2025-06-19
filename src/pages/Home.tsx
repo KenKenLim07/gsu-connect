@@ -102,7 +102,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
       {/* Hero Section */}
-      <section className="relative py-16 px-4">
+      <section className="relative pt-10 pb-3 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center">
             <motion.h1
@@ -114,7 +114,7 @@ export default function Home() {
               What's News
             </motion.h1>
             <motion.p
-              className="text-xs text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed"
+              className="text-xs text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed mb-2"
               initial={{ opacity: 0, y: 32 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.4, ease: 'easeOut' }}
@@ -125,6 +125,32 @@ export default function Home() {
         </div>
       </section>
 
+      {/* View All News Card */}
+      <div className="flex justify-center mb-2">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 8 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 1, ease: 'easeOut' }}
+        >
+          <Link
+            to="/news"
+            className="group inline-flex items-center rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-sm hover:shadow transition-all duration-200 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-label="View all news"
+            style={{ minWidth: 0 }}
+          >
+            <span className="text-xs font-normal text-gray-900 dark:text-gray-100 whitespace-nowrap">View all news</span>
+            <motion.span
+              className="inline-flex ml-1"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: [1, 0.3, 1] }}
+              transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
+            >
+              <ArrowRight className="w-4 h-4 text-primary group-hover:translate-x-1 transition-transform duration-200" />
+            </motion.span>
+          </Link>
+        </motion.div>
+      </div>
+
       {/* Content Section */}
       <section className="flex-1 overflow-y-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-12">
@@ -132,15 +158,12 @@ export default function Home() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <AnimatedSectionHeader>Salvador</AnimatedSectionHeader>
-              <Link to="/news?campus=Main%20Campus">
-                <Card className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors border-gray-300 dark:border-gray-700">
-                  <CardContent className="px-2 py-1">
-                    <div className="flex items-center gap-1 text-xs text-black dark:text-gray-100 hover:text-gray-900 dark:hover:text-white">
-                      Show all
-                      <ArrowRight className="w-3 h-3" />
-                    </div>
-                  </CardContent>
-                </Card>
+              <Link
+                to="/news?campus=Main%20Campus"
+                className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-4 decoration-1 hover:decoration-2 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                Show all
+                <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
             <MainCampusNews news={mainCampusNews} loading={isLoading} error={errorMessage} />
@@ -152,15 +175,12 @@ export default function Home() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <AnimatedSectionHeader revealOnScroll>Mosqueda</AnimatedSectionHeader>
-              <Link to="/news?campus=CST">
-                <Card className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors border-gray-300 dark:border-gray-700">
-                  <CardContent className="px-2 py-1">
-                    <div className="flex items-center gap-1 text-xs text-black dark:text-gray-100 hover:text-gray-900 dark:hover:text-white">
-                      Show all
-                      <ArrowRight className="w-3 h-3" />
-                    </div>
-                  </CardContent>
-                </Card>
+              <Link
+                to="/news?campus=CST"
+                className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-4 decoration-1 hover:decoration-2 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                Show all
+                <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
             <CstNews news={cstNews} loading={isLoading} error={errorMessage} />

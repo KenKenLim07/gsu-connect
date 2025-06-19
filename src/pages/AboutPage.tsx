@@ -5,10 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 
 // Static content data
 const aboutContent = {
-  description: "GSU Connect is a centralized digital platform I built to simplify how students, faculty, and staff at Guimaras State University access the latest official news and announcements from across all campuses.",
-  context: "In many schools, updates are scattered across multiple sources—websites, Facebook pages, or bulletin boards—making it easy to miss important information. GSU Connect solves this by automatically scraping only the newest and most recent news from trusted university sources and displaying it in one organized, easy-to-navigate platform.",
-  goal: "To make sure everyone in the GSU community can stay updated without the hassle of checking multiple sites or missing urgent updates.",
-  conclusion: "Whether you're a student tracking school events or a faculty member staying on top of announcements, GSU Connect helps you stay informed—fast, reliably, and all in one place."
+  intro: "I built GSU Connect because I noticed that important information at Guimaras State University was often fragmented—spread across different university websites and Facebook pages. This made it easy for students, faculty, and staff to miss announcements, events, or updates that mattered.",
+  solution: "GSU Connect solves this by linking and centralizing those scattered sources. It automatically pulls the latest news and announcements from trusted university platforms and presents them in one simple, easy-to-use hub.",
+  goal: "To help the entire GSU community stay informed—without the hassle of checking multiple sites or missing out on urgent updates. By connecting various official sources into one streamlined platform, GSU Connect makes staying updated fast, reliable, and effortless."
 };
 
 // Separate components for better organization
@@ -38,43 +37,38 @@ const AboutContent = () => {
     gcTime: Infinity, // Keep in cache forever
   });
 
-  // Animation for all except the goal block
+  // Animation for all blocks
   const COMMON_ANIMATION = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.5, ease: easeOut }
   };
 
-  // Scale animation for the goal block
-  const GOAL_ANIMATION = {
-    initial: { opacity: 0, scale: 0.95 },
-    animate: { opacity: 1, scale: 1 },
-    transition: { duration: 0.5, ease: easeOut, delay: 0.2 }
-  };
-
   return (
-    <div className="space-y-2 text-gray-600 dark:text-gray-200">
-      <motion.p {...COMMON_ANIMATION} className="text-sm leading-relaxed">
-        {content.description}
-      </motion.p>
-
-      <motion.p {...COMMON_ANIMATION} className="text-xs italic leading-relaxed dark:text-gray-400">
-        {content.context}
-      </motion.p>
-
-      <motion.div 
-        {...GOAL_ANIMATION}
-        className="border border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-500 transition-colors duration-200 rounded-lg p-2"
+    <div className="space-y-4 text-gray-700 dark:text-gray-200">
+      <motion.p
+        {...COMMON_ANIMATION}
+        className="text-base md:text-lg font-normal leading-relaxed text-gray-900 dark:text-gray-100"
       >
-        <h2 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-1">My goal is simple:</h2>
-        <p className="text-sm leading-relaxed">
+        {content.intro}
+      </motion.p>
+      <motion.p
+        {...COMMON_ANIMATION}
+        className="text-sm italic text-gray-600 dark:text-gray-300 border-l-4 border-primary/60 pl-3 py-1 bg-gray-50 dark:bg-gray-900/40 rounded"
+      >
+        {content.solution}
+      </motion.p>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: easeOut, delay: 0.2 }}
+        className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-lg p-3 shadow-sm"
+      >
+        <h2 className="text-base font-semibold text-primary mb-1">My goal is simple:</h2>
+        <p className="text-sm leading-relaxed text-gray-900 dark:text-gray-100">
           {content.goal}
         </p>
       </motion.div>
-
-      <motion.p {...COMMON_ANIMATION} className="text-sm leading-relaxed">
-        {content.conclusion}
-      </motion.p>
     </div>
   );
 };

@@ -78,15 +78,15 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
                   value={selectedSource}
                   onValueChange={(value: string) => setSelectedSource(value)}
                 >
-                  <SelectTrigger className="w-[180px] h-8 text-sm">
+                  <SelectTrigger className="w-[110px] h-7 text-xs px-2 py-1 border border-neutral-400 dark:border-neutral-400">
                     <SelectValue>
                       {selectedSource === "All" ? "All Sources" : selectedSource}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="text-xs">
                     <SelectItem value="All">All Sources</SelectItem>
                     {sourceNames.map((sourceName) => (
-                      <SelectItem key={sourceName} value={sourceName}>
+                      <SelectItem key={sourceName} value={sourceName} className="text-xs py-1 px-2">
                         {sourceName}
                       </SelectItem>
                     ))}
@@ -122,7 +122,7 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
                   key={item.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: idx * 0.05 }}
+                  transition={{ duration: 0.4, delay: idx * 0.01 }}
                 >
                   <NewsCard news={item} />
                 </motion.div>
