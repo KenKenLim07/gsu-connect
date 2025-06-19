@@ -6,7 +6,7 @@ import CstNews from "@/components/news/CstNews";
 import { motion, useInView } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { ArrowUpIcon } from '@heroicons/react/24/outline';
 
 function AnimatedSectionHeader({ children, revealOnScroll = false }: { children: string, revealOnScroll?: boolean }) {
@@ -57,10 +57,28 @@ function AnimatedSectionHeader({ children, revealOnScroll = false }: { children:
         {children}
       </motion.h2>
       <motion.span
-        className="block absolute left-0 -bottom-0.5 h-0.5 bg-black dark:bg-gray-200 rounded-full"
+        className="block absolute left-0 -bottom-0.5 h-0.5 bg-black dark:bg-white rounded-full"
         {...lineProps}
         aria-hidden="true"
         style={{ maxWidth: '100%' }}
+      />
+    </div>
+  );
+}
+
+function AnimatedSeparator() {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: '0px 0px -20% 0px' });
+  return (
+    <div className="flex justify-center">
+      <motion.div
+        ref={ref}
+        className="h-0.5 bg-black dark:bg-white rounded-full"
+        initial={{ scaleX: 0 }}
+        animate={isInView ? { scaleX: 1 } : { scaleX: 0 }}
+        transition={{ duration: 0.7, delay: 0.1 }}
+        style={{ width: '100%', maxWidth: 480, transformOrigin: 'center' }}
+        aria-hidden="true"
       />
     </div>
   );
@@ -168,7 +186,7 @@ export default function Home() {
             <MainCampusNews news={mainCampusNews} loading={isLoading} error={errorMessage} />
           </div>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent" />
+          <AnimatedSeparator />
 
           {/* CST Section */}
           <div className="space-y-4">
