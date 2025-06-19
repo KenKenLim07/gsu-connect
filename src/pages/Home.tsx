@@ -3,12 +3,72 @@ import { getNews } from "@/services/newsService";
 import type { NewsItem } from "@/types/news";
 import MainCampusNews from "@/components/news/MainCampusNews";
 import CstNews from "@/components/news/CstNews";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowUpIcon } from '@heroicons/react/24/outline';
+
+function AnimatedSectionHeader({ children, revealOnScroll = false }: { children: string, revealOnScroll?: boolean }) {
+  const textRef = useRef<HTMLHeadingElement>(null);
+  const [textWidth, setTextWidth] = useState(0);
+
+  useEffect(() => {
+    if (textRef.current) {
+      setTextWidth(textRef.current.offsetWidth);
+    }
+  }, [children]);
+
+  // For reveal on scroll
+  const inViewRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(inViewRef, { once: true, margin: '0px 0px -20% 0px' });
+
+  // Use framer-motion built-in string for ease
+  const easeInOut = 'easeInOut';
+
+  const fadeProps = revealOnScroll
+    ? {
+        initial: { opacity: 0 },
+        animate: isInView ? { opacity: 1 } : { opacity: 0 },
+        transition: { duration: 1 },
+      }
+    : {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        transition: { duration: 1, delay: 0.1 },
+      };
+
+  const lineProps = revealOnScroll
+    ? {
+        initial: { opacity: 0, width: 24 },
+        animate: isInView ? { opacity: 1, width: textWidth || 64 } : { opacity: 0, width: 24 },
+        transition: { duration: 1, delay: 0.15 },
+      }
+    : {
+        initial: { opacity: 0, width: 24 },
+        animate: { opacity: 1, width: textWidth || 64 },
+        transition: { duration: 1, delay: 0.25 },
+      };
+
+  return (
+    <div className="relative inline-block" ref={revealOnScroll ? inViewRef : undefined}>
+      <motion.h2
+        ref={textRef}
+        className="text-lg font-bold text-gray-900 dark:text-gray-100 inline-block pb-1"
+        {...fadeProps}
+      >
+        {children}
+      </motion.h2>
+      <motion.span
+        className="block absolute left-0 -bottom-0.5 h-0.5 bg-black dark:bg-gray-200 rounded-full"
+        {...lineProps}
+        aria-hidden="true"
+        style={{ maxWidth: '100%' }}
+      />
+    </div>
+  );
+}
 
 export default function Home() {
   const { data: news = [], isLoading, error } = useQuery<NewsItem[]>({
@@ -47,24 +107,24 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative py-16 px-4">
         <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center"
-              >
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
+          <div className="text-center">
+            <motion.h1
+              className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4"
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.1, ease: 'easeOut' }}
+            >
               What's News
-            </h1>
-              <motion.p
+            </motion.h1>
+            <motion.p
               className="text-xs text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              initial={{ opacity: 0, y: 32 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.4, ease: 'easeOut' }}
             >
               Stay connected. Stay informed
-              </motion.p>
-          </motion.div>
+            </motion.p>
+          </div>
         </div>
       </section>
 
@@ -74,9 +134,7 @@ export default function Home() {
           {/* Main Campus Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 border-b-2 border-black dark:border-gray-200 inline-block pb-1">
-                Salvador
-              </h2>
+              <AnimatedSectionHeader>Salvador</AnimatedSectionHeader>
               <Link to="/news?campus=Main%20Campus">
                 <Card className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors border-gray-300 dark:border-gray-700">
                   <CardContent className="px-2 py-1">
@@ -96,20 +154,18 @@ export default function Home() {
           {/* CST Section */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 border-b-2 border-black dark:border-gray-200 inline-block pb-1">
-                Mosqueda
-              </h2>
+              <AnimatedSectionHeader revealOnScroll>Mosqueda</AnimatedSectionHeader>
               <Link to="/news?campus=CST">
                 <Card className="hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors border-gray-300 dark:border-gray-700">
                   <CardContent className="px-2 py-1">
                     <div className="flex items-center gap-1 text-xs text-black dark:text-gray-100 hover:text-gray-900 dark:hover:text-white">
                       Show all
                       <ArrowRight className="w-3 h-3" />
-        </div>
+                    </div>
                   </CardContent>
                 </Card>
               </Link>
-      </div>
+            </div>
             <CstNews news={cstNews} loading={isLoading} error={errorMessage} />
           </div>
         </div>

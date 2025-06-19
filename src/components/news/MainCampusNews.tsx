@@ -134,11 +134,8 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6" onClick={handleClickOutside}>
       {filteredNews.map((item, index) => (
-        <motion.article
+        <article
           key={item.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: index * 0.1 }}
           className="group bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-300"
         >
           {/* Image */}
@@ -216,7 +213,7 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
               )}
             </div>
           </div>
-        </motion.article>
+        </article>
       ))}
     </div>
   );
