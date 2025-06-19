@@ -24,9 +24,6 @@ function AnimatedSectionHeader({ children, revealOnScroll = false }: { children:
   const inViewRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(inViewRef, { once: true, margin: '0px 0px -20% 0px' });
 
-  // Use framer-motion built-in string for ease
-  const easeInOut = 'easeInOut';
-
   const fadeProps = revealOnScroll
     ? {
         initial: { opacity: 0 },
