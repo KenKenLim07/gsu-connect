@@ -7,20 +7,36 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { ArrowUpIcon } from '@heroicons/react/24/outline';
 
 export default function Home() {
   const { data: news = [], isLoading, error } = useQuery<NewsItem[]>({
     queryKey: ['news'],
     queryFn: async () => {
-      const { data, error } = await getNews();
+        const { data, error } = await getNews();
       if (error) throw new Error('Failed to load news');
       return data;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 2 * 60 * 60 * 1000, // 2 hours
     refetchOnWindowFocus: false,
     retry: 1,
   });
+
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 200);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const handleScrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const mainCampusNews = news.filter(item => item.campus?.name === "Main Campus");
   const cstNews = news.filter(item => item.campus?.name === "CST");
@@ -33,21 +49,21 @@ export default function Home() {
         <div className="max-w-5xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="text-center"
-          >
+              >
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-4">
               What's News
             </h1>
-            <motion.p
+              <motion.p
               className="text-xs text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
               Stay connected. Stay informed
-            </motion.p>
+              </motion.p>
           </motion.div>
         </div>
       </section>
@@ -89,15 +105,26 @@ export default function Home() {
                     <div className="flex items-center gap-1 text-xs text-black dark:text-gray-100 hover:text-gray-900 dark:hover:text-white">
                       Show all
                       <ArrowRight className="w-3 h-3" />
-                    </div>
+        </div>
                   </CardContent>
                 </Card>
               </Link>
-            </div>
+      </div>
             <CstNews news={cstNews} loading={isLoading} error={errorMessage} />
           </div>
         </div>
       </section>
+
+      {/* Floating Scroll to Top Button (fixed to viewport) */}
+      {showScrollTop && (
+        <button
+          onClick={handleScrollToTop}
+          className="fixed bottom-6 right-6 z-50 p-3 rounded-full bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 shadow-lg hover:bg-gray-700 dark:hover:bg-gray-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
+          aria-label="Scroll to top"
+        >
+          <ArrowUpIcon className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 } 

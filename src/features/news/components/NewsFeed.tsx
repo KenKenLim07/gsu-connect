@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../components/ui/select";
 import NewsCard from "./NewsCard";
 import NewsCardSkeleton from "../../../components/news/NewsCardSkeleton";
 import { getNews } from "../../../services/newsService";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { ArrowUpIcon } from '@heroicons/react/24/outline';
 
 interface NewsFeedProps {
   initialCampus?: string | null;
@@ -12,6 +13,8 @@ interface NewsFeedProps {
 
 export default function NewsFeed({ initialCampus }: NewsFeedProps) {
   const [selectedSource, setSelectedSource] = useState<string>(initialCampus || "All");
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data: news = [], isLoading, error } = useQuery({
     queryKey: ['news'],
@@ -20,6 +23,8 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
       if (error) throw new Error('Failed to load news');
       return data;
     },
+    staleTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 2 * 60 * 60 * 1000, // 2 hours
   });
 
   useEffect(() => {
@@ -27,6 +32,29 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
       setSelectedSource(initialCampus);
     }
   }, [initialCampus]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollRef.current) {
+        setShowScrollTop(scrollRef.current.scrollTop > 200);
+      }
+    };
+    const ref = scrollRef.current;
+    if (ref) {
+      ref.addEventListener('scroll', handleScroll);
+    }
+    return () => {
+      if (ref) {
+        ref.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, []);
+
+  const handleScrollToTop = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const filteredNews = selectedSource === "All"
     ? news
@@ -70,7 +98,7 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pt-14">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pt-14">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
           <div className="space-y-3">
             {isLoading ? (
@@ -103,6 +131,16 @@ export default function NewsFeed({ initialCampus }: NewsFeedProps) {
           </div>
         </div>
       </div>
+      {/* Floating Scroll to Top Button (fixed to viewport) */}
+      {showScrollTop && (
+        <button
+          onClick={handleScrollToTop}
+          className="fixed bottom-6 right-6 z-50 p-3 rounded-full bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 shadow-lg hover:bg-gray-700 dark:hover:bg-gray-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
+          aria-label="Scroll to top"
+        >
+          <ArrowUpIcon className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 }

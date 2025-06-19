@@ -19,18 +19,10 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) return 'Today';
-    if (diffDays === 2) return 'Yesterday';
-    if (diffDays <= 7) return `${diffDays - 1} days ago`;
-    
     return date.toLocaleDateString("en-US", {
-      month: "short",
+      year: "numeric",
+      month: "long",
       day: "numeric",
-      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined
     });
   };
 
@@ -147,7 +139,7 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: index * 0.1 }}
-          className="group bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-300"
+          className="group bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-300"
         >
           {/* Image */}
           <div className="relative h-40 overflow-hidden">
@@ -160,7 +152,7 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
           </div>
 
           {/* Content */}
-          <div className="p-4 space-y-3">
+          <div className="p-2 space-y-1.5">
             {/* Title with Menu */}
             <div className="flex justify-between items-start gap-2">
               <h3 className="font-semibold text-gray-900 dark:text-gray-100 leading-tight line-clamp-2 text-sm flex-1">
@@ -169,9 +161,9 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
               <div className="relative">
                 <button 
                   onClick={(e) => handleMenuClick(e, index)}
-                  className="text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 transition-colors p-1"
+                  className="text-gray-400 dark:text-gray-300 hover:text-gray-600 dark:hover:text-gray-100 transition-colors p-2"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                   </svg>
                 </button>
@@ -202,18 +194,26 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
               </div>
             </div>
 
-            {/* Excerpt */}
-            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-2">
-              {item.content.length > 100 
-                ? `${item.content.substring(0, 100)}...` 
-                : item.content
-              }
-            </p>
-
-            {/* Meta */}
+            {/* Meta + Read full article */}
             <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
-              <span>{item.source_url ? new URL(item.source_url).hostname.replace('www.', '') : 'GSU'}</span>
-              <span>{formatDate(item.published_at)}</span>
+              <div className="flex items-center gap-1.5">
+                <span>gsu.edu.ph</span>
+                <span>•</span>
+                <span>{formatDate(item.published_at)}</span>
+              </div>
+              {item.source_url && (
+                <a
+                  href={item.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-transparent text-xs font-medium text-gray-600 dark:text-gray-300 underline decoration-black/70 dark:decoration-white/70 underline-offset-2 hover:decoration-2 transition-colors"
+                >
+                  Read full article
+                  <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </a>
+              )}
             </div>
           </div>
         </motion.article>

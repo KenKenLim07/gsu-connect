@@ -21,7 +21,7 @@ const BackButton = () => {
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3 }}
       onClick={() => navigate(-1)}
-      className="flex items-center text-gray-600 hover:text-gray-900 mb-2 transition-colors"
+      className="flex items-center text-gray-600 hover:text-gray-900 dark:text-white mb-2 transition-colors"
     >
       <ArrowLeft className="w-4 h-4 mr-2" />
       <span className="text-sm">Back</span>
@@ -53,20 +53,20 @@ const AboutContent = () => {
   };
 
   return (
-    <div className="space-y-2 text-gray-600">
+    <div className="space-y-2 text-gray-600 dark:text-gray-200">
       <motion.p {...COMMON_ANIMATION} className="text-sm leading-relaxed">
         {content.description}
       </motion.p>
 
-      <motion.p {...COMMON_ANIMATION} className="text-xs italic leading-relaxed">
+      <motion.p {...COMMON_ANIMATION} className="text-xs italic leading-relaxed dark:text-gray-400">
         {content.context}
       </motion.p>
 
       <motion.div 
         {...GOAL_ANIMATION}
-        className="border border-neutral-200 hover:border-neutral-300 transition-colors duration-200 rounded-lg p-2"
+        className="border border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-500 transition-colors duration-200 rounded-lg p-2"
       >
-        <h2 className="text-base font-medium text-gray-900 mb-1">My goal is simple:</h2>
+        <h2 className="text-base font-medium text-gray-900 dark:text-gray-100 mb-1">My goal is simple:</h2>
         <p className="text-sm leading-relaxed">
           {content.goal}
         </p>
@@ -89,13 +89,13 @@ export default function AboutPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="border border-neutral-200 hover:border-neutral-300 transition-colors duration-200 rounded-lg p-3"
+          className="border border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-500 transition-colors duration-200 rounded-lg p-3"
         >
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-lg font-semibold text-gray-900 mb-2"
+            className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2"
           >
             About GSU Connect
           </motion.h1>
