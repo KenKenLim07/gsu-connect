@@ -136,7 +136,7 @@ export default function MainCampusNews({ news, loading, error }: MainCampusNewsP
       {filteredNews.map((item, index) => (
         <article
           key={item.id}
-          className="group bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-300"
+          className="group bg-white dark:bg-gray-900 rounded-xl shadow-sm border-2 border-gray-100 dark:border-gray-800 hover:shadow-md hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-300"
         >
           {/* Image */}
           <div className="relative h-40 overflow-hidden">
